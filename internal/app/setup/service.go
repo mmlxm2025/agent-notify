@@ -158,6 +158,9 @@ func (s *Service) Run(ctx context.Context, prompter Prompter, output OutputWrite
 		if cfg.Notify.ClaudeCode.Channels.System.Enabled {
 			currentChannels = append(currentChannels, "system")
 		}
+		if cfg.Notify.ClaudeCode.Channels.WechatWork.Enabled {
+			currentChannels = append(currentChannels, "wechat-work")
+		}
 	} else {
 		if cfg.Notify.Codex.Channels.Feishu.Enabled {
 			currentChannels = append(currentChannels, "feishu")
@@ -165,11 +168,18 @@ func (s *Service) Run(ctx context.Context, prompter Prompter, output OutputWrite
 		if cfg.Notify.Codex.Channels.System.Enabled {
 			currentChannels = append(currentChannels, "system")
 		}
+		if cfg.Notify.Codex.Channels.WechatWork.Enabled {
+			currentChannels = append(currentChannels, "wechat-work")
+		}
 	}
 
 	channelChoices, err := prompter.MultiSelect(
 		"启用通知渠道",
-		[]PromptOption{{Label: "飞书", Value: "feishu"}, {Label: "系统通知", Value: "system"}},
+		[]PromptOption{
+			{Label: "飞书", Value: "feishu"},
+			{Label: "系统通知", Value: "system"},
+			{Label: "企业微信", Value: "wechat-work"},
+		},
 		currentChannels,
 	)
 	if err != nil {
@@ -179,7 +189,8 @@ func (s *Service) Run(ctx context.Context, prompter Prompter, output OutputWrite
 	// Step 3: Check if any channel selected
 	feishuEnabled := slices.Contains(channelChoices, "feishu")
 	systemEnabled := slices.Contains(channelChoices, "system")
-	hasChannel := feishuEnabled || systemEnabled
+	wechatWorkEnabled := slices.Contains(channelChoices, "wechat-work")
+	hasChannel := feishuEnabled || systemEnabled || wechatWorkEnabled
 
 	// If no channel selected, disable the agent's notification and return early
 	if !hasChannel {
@@ -221,6 +232,18 @@ func (s *Service) Run(ctx context.Context, prompter Prompter, output OutputWrite
 			}
 		}
 
+		if wechatWorkEnabled {
+			currentURL := cfg.Notify.ClaudeCode.Channels.WechatWork.WebhookURL
+			webhookURL, err := prompter.Input("企业微信群机器人 Webhook URL", currentURL)
+			if err != nil {
+				return nil, err
+			}
+			cfg.Notify.ClaudeCode.Channels.WechatWork.Enabled = true
+			cfg.Notify.ClaudeCode.Channels.WechatWork.WebhookURL = webhookURL
+		} else {
+			cfg.Notify.ClaudeCode.Channels.WechatWork.Enabled = false
+		}
+
 		agentScope := "user"
 		if cfg.Agent.ClaudeCode.InstallScope == "project" {
 			agentScope = "project"
@@ -259,6 +282,18 @@ func (s *Service) Run(ctx context.Context, prompter Prompter, output OutputWrite
 			if err := s.prepareFeishu(ctx); err != nil {
 				return nil, fmt.Errorf("飞书初始化失败: %w", err)
 			}
+		}
+
+		if wechatWorkEnabled {
+			currentURL := cfg.Notify.Codex.Channels.WechatWork.WebhookURL
+			webhookURL, err := prompter.Input("企业微信群机器人 Webhook URL", currentURL)
+			if err != nil {
+				return nil, err
+			}
+			cfg.Notify.Codex.Channels.WechatWork.Enabled = true
+			cfg.Notify.Codex.Channels.WechatWork.WebhookURL = webhookURL
+		} else {
+			cfg.Notify.Codex.Channels.WechatWork.Enabled = false
 		}
 
 		agentScope := "user"
@@ -360,11 +395,13 @@ func (s *Service) disableAgentNotification(cfg config.Config, path, agent string
 	case "claude":
 		cfg.Notify.ClaudeCode.Channels.Feishu.Enabled = false
 		cfg.Notify.ClaudeCode.Channels.System.Enabled = false
+		cfg.Notify.ClaudeCode.Channels.WechatWork.Enabled = false
 		cfg.Notify.ClaudeCode.Events = nil
 		cfg.Agent.ClaudeCode.Enabled = false
 	case "codex":
 		cfg.Notify.Codex.Channels.Feishu.Enabled = false
 		cfg.Notify.Codex.Channels.System.Enabled = false
+		cfg.Notify.Codex.Channels.WechatWork.Enabled = false
 		cfg.Notify.Codex.Events = nil
 		cfg.Agent.Codex.Enabled = false
 	}

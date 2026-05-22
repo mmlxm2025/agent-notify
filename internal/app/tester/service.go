@@ -22,10 +22,11 @@ type ConfigLoader interface {
 
 // Service handles test notifications.
 type Service struct {
-	feishuPreparer FeishuPreparer
-	configLoader   ConfigLoader
-	feishuSender   notify.Sender
-	systemSender   notify.Sender
+	feishuPreparer    FeishuPreparer
+	configLoader      ConfigLoader
+	feishuSender      notify.Sender
+	systemSender      notify.Sender
+	wechatWorkSender  notify.Sender
 }
 
 // NewService creates a new tester service.
@@ -58,6 +59,11 @@ func WithFeishuSender(sender notify.Sender) Option {
 // WithSystemSender sets the system sender.
 func WithSystemSender(sender notify.Sender) Option {
 	return func(s *Service) { s.systemSender = sender }
+}
+
+// WithWechatWorkSender sets the WeChat Work sender.
+func WithWechatWorkSender(sender notify.Sender) Option {
+	return func(s *Service) { s.wechatWorkSender = sender }
 }
 
 // TestFeishuResult contains the result of a Feishu test.
@@ -95,6 +101,20 @@ func (s *Service) TestSystem(ctx context.Context) (*TestSystemResult, error) {
 	return &TestSystemResult{Message: "系统测试通知已发送"}, nil
 }
 
+// TestWechatWorkResult contains the result of a WeChat Work test.
+type TestWechatWorkResult struct {
+	Message string
+}
+
+// TestWechatWork sends a test WeChat Work notification using the provided webhook URL.
+func (s *Service) TestWechatWork(ctx context.Context, webhookURL string) (*TestWechatWorkResult, error) {
+	msg := notify.Message{Event: "permission_required", Title: "Agent Notify 测试", Body: "这是一条企业微信测试消息"}
+	if err := s.wechatWorkNotificationSender(webhookURL).Send(ctx, msg); err != nil {
+		return nil, err
+	}
+	return &TestWechatWorkResult{Message: "企业微信测试通知已发送"}, nil
+}
+
 func (s *Service) defaultConfigPath() (string, error) {
 	if s.configLoader != nil {
 		return s.configLoader.DefaultPath()
@@ -121,4 +141,11 @@ func (s *Service) systemNotificationSender() notify.Sender {
 		return s.systemSender
 	}
 	return notify.NewSystemSender(notify.DefaultRunner)
+}
+
+func (s *Service) wechatWorkNotificationSender(webhookURL string) notify.Sender {
+	if s.wechatWorkSender != nil {
+		return s.wechatWorkSender
+	}
+	return notify.NewWechatWorkSender(webhookURL)
 }

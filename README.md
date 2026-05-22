@@ -16,6 +16,7 @@
 
 - 🖥️ **系统通知** - 支持 macOS、Linux、Windows 系统通知
 - 📱 **飞书通知** - 支持一键扫码绑定、支持飞书机器人消息推送
+- 💬 **企业微信通知** - 支持通过企业微信群机器人 Webhook 推送通知消息
 - 🔔 **事件订阅** - Claude Code 支持 4 种事件；Codex 支持 2 种事件
 
 
@@ -54,6 +55,13 @@ npx agent-notify
 launcher 不会持久修改你的 PATH，而是始终用绝对路径执行已安装的真实二进制。
 
 > **注意**: Codex 通过 `~/.codex/hooks.json` 接入 Codex 官方 hooks 系统，目前仅订阅 `PermissionRequest`、`Stop` 两个事件（对应 `permission_required` 与 `run_completed`）。首次安装后请在 codex 内运行 `/hooks` 完成 trust 审核。
+
+### 企业微信机器人配置指引
+
+1. **创建单人通知群**：在企业微信中发起群聊（随便拉几个同事），在群聊创建成功后，**不要在群里发言/讲话**，直接将其他人移出群聊。此时该群将变成你个人的单人通知群。
+2. **添加机器人**：点击群设置 -> 「群机器人」 -> 「添加机器人」 -> 「新创建一个机器人」，命名并保存。
+3. **获取 Webhook 地址**：复制生成的 Webhook 地址，格式类似于：`https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`。
+4. **绑定配置**：运行 `npx agent-notify` 并在配置向导中选择启用企业微信渠道，粘贴上述复制的 Webhook URL 即可。
 
 ### 支持的平台
 
@@ -94,6 +102,9 @@ notify:
         enabled: true
       feishu:
         enabled: false
+      wechat_work:
+        enabled: false
+        webhook_url: ""
   codex:
     events:
       - permission_required
@@ -103,6 +114,9 @@ notify:
         enabled: false
       feishu:
         enabled: false
+      wechat_work:
+        enabled: false
+        webhook_url: ""
 behavior:
   dedupe_seconds: 60
   send_timeout_seconds: 5

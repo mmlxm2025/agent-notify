@@ -42,13 +42,20 @@ type AgentNotifyConfig struct {
 
 // ChannelsConfig holds configuration for notification channels.
 type ChannelsConfig struct {
-	Feishu ChannelConfig `yaml:"feishu"` // 飞书通知配置
-	System ChannelConfig `yaml:"system"` // 系统通知配置
+	Feishu     ChannelConfig          `yaml:"feishu"`      // 飞书通知配置
+	System     ChannelConfig          `yaml:"system"`      // 系统通知配置
+	WechatWork WechatWorkChannelConfig `yaml:"wechat_work"` // 企业微信通知配置
 }
 
 // ChannelConfig holds configuration for a single notification channel.
 type ChannelConfig struct {
 	Enabled bool `yaml:"enabled"` // 是否启用该通知渠道
+}
+
+// WechatWorkChannelConfig holds configuration for WeChat Work (企业微信) webhook notifications.
+type WechatWorkChannelConfig struct {
+	Enabled    bool   `yaml:"enabled"`     // 是否启用企业微信通知
+	WebhookURL string `yaml:"webhook_url"` // 群机器人 Webhook URL
 }
 
 // BehaviorConfig holds behavior configuration.
@@ -79,15 +86,17 @@ func Default() Config {
 			ClaudeCode: AgentNotifyConfig{
 				Events: append([]string(nil), allEvents...),
 				Channels: ChannelsConfig{
-					System: ChannelConfig{Enabled: true},
-					Feishu: ChannelConfig{Enabled: false},
+					System:     ChannelConfig{Enabled: true},
+					Feishu:     ChannelConfig{Enabled: false},
+					WechatWork: WechatWorkChannelConfig{Enabled: false, WebhookURL: ""},
 				},
 			},
 			Codex: AgentNotifyConfig{
 				Events: append([]string(nil), codexEvents...),
 				Channels: ChannelsConfig{
-					System: ChannelConfig{Enabled: false},
-					Feishu: ChannelConfig{Enabled: false},
+					System:     ChannelConfig{Enabled: false},
+					Feishu:     ChannelConfig{Enabled: false},
+					WechatWork: WechatWorkChannelConfig{Enabled: false, WebhookURL: ""},
 				},
 			},
 		},

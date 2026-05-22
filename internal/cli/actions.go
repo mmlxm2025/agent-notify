@@ -117,6 +117,30 @@ func runTestSystem(ctx context.Context, streams Streams) error {
 	return nil
 }
 
+func runTestWechatWork(ctx context.Context, streams Streams) error {
+	cfg, _, err := loadDefaultConfig()
+	if err != nil {
+		return err
+	}
+
+	// Try claude config first, fall back to codex
+	webhookURL := cfg.Notify.ClaudeCode.Channels.WechatWork.WebhookURL
+	if webhookURL == "" {
+		webhookURL = cfg.Notify.Codex.Channels.WechatWork.WebhookURL
+	}
+	if webhookURL == "" {
+		return fmt.Errorf("未配置企业微信 Webhook URL，请先运行配置向导")
+	}
+
+	svc := tester.NewService()
+	result, err := svc.TestWechatWork(ctx, webhookURL)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintln(streams.Stdout, "✅ "+result.Message)
+	return nil
+}
+
 func runDoctor(streams Streams) error {
 	svc := doctor.NewService(
 		doctor.WithClaudeIntegration(agentintegrations.NewClaudeIntegration()),
@@ -152,9 +176,9 @@ func printCurrentNotifyConfig(streams Streams) error {
 	fmt.Fprintf(streams.Stdout, "配置文件: %s\n\n", path)
 
 	// Agent status table
-	fmt.Fprintln(streams.Stdout, "┌─────────────┬────────┬────────┐")
-	fmt.Fprintln(streams.Stdout, "│ Agent       │ 飞书   │ 系统   │")
-	fmt.Fprintln(streams.Stdout, "├─────────────┼────────┼────────┤")
+	fmt.Fprintln(streams.Stdout, "┌─────────────┬──────┬──────┬────────┐")
+	fmt.Fprintln(streams.Stdout, "│ Agent       │ 飞书   │ 系统   │ 企业微信 │")
+	fmt.Fprintln(streams.Stdout, "├─────────────├──────├──────├────────┤")
 
 	// Claude Code
 	claudeFeishu := "❌"
@@ -165,7 +189,11 @@ func printCurrentNotifyConfig(streams Streams) error {
 	if cfg.Notify.ClaudeCode.Channels.System.Enabled {
 		claudeSystem = "✅"
 	}
-	fmt.Fprintf(streams.Stdout, "│ Claude Code │   %s    │   %s    │\n", claudeFeishu, claudeSystem)
+	claudeWechat := "❌"
+	if cfg.Notify.ClaudeCode.Channels.WechatWork.Enabled {
+		claudeWechat = "✅"
+	}
+	fmt.Fprintf(streams.Stdout, "│ Claude Code │   %s    │   %s    │   %s      │\n", claudeFeishu, claudeSystem, claudeWechat)
 
 	// Codex
 	codexFeishu := "❌"
@@ -176,9 +204,13 @@ func printCurrentNotifyConfig(streams Streams) error {
 	if cfg.Notify.Codex.Channels.System.Enabled {
 		codexSystem = "✅"
 	}
-	fmt.Fprintf(streams.Stdout, "│ Codex       │   %s    │   %s    │\n", codexFeishu, codexSystem)
+	codexWechat := "❌"
+	if cfg.Notify.Codex.Channels.WechatWork.Enabled {
+		codexWechat = "✅"
+	}
+	fmt.Fprintf(streams.Stdout, "│ Codex       │   %s    │   %s    │   %s      │\n", codexFeishu, codexSystem, codexWechat)
 
-	fmt.Fprintln(streams.Stdout, "└─────────────┴────────┴────────┘")
+	fmt.Fprintln(streams.Stdout, "└─────────────┴──────┴──────┴────────┘")
 	return nil
 }
 

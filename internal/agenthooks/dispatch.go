@@ -47,6 +47,9 @@ func buildSenders(cfg config.Config, msg notify.Message) []notify.Sender {
 	if notifyCfg.Channels.Feishu.Enabled {
 		senders = append(senders, notify.NewDefaultFeishuSender())
 	}
+	if notifyCfg.Channels.WechatWork.Enabled && notifyCfg.Channels.WechatWork.WebhookURL != "" {
+		senders = append(senders, notify.NewWechatWorkSender(notifyCfg.Channels.WechatWork.WebhookURL))
+	}
 
 	return senders
 }

@@ -97,6 +97,7 @@ func runTestMenu(ctx context.Context, streams Streams, prompter Prompter) error 
 	choice, err := prompter.Select("测试通知", []PromptOption{
 		{Label: "飞书", Value: "feishu"},
 		{Label: "系统通知", Value: "system"},
+		{Label: "企业微信", Value: "wechat-work"},
 		{Label: "返回", Value: "back"},
 	}, "feishu")
 	if err != nil {
@@ -108,6 +109,8 @@ func runTestMenu(ctx context.Context, streams Streams, prompter Prompter) error 
 		return runTestFeishu(ctx, streams)
 	case "system":
 		return runTestSystem(ctx, streams)
+	case "wechat-work":
+		return runTestWechatWork(ctx, streams)
 	default:
 		return nil
 	}
@@ -177,10 +180,14 @@ func runCleanConfig(streams Streams, prompter Prompter) error {
 	// Clear ClaudeCode channel toggles and events
 	defaultCfg.Notify.ClaudeCode.Channels.Feishu.Enabled = false
 	defaultCfg.Notify.ClaudeCode.Channels.System.Enabled = false
+	defaultCfg.Notify.ClaudeCode.Channels.WechatWork.Enabled = false
+	defaultCfg.Notify.ClaudeCode.Channels.WechatWork.WebhookURL = ""
 	defaultCfg.Notify.ClaudeCode.Events = nil
 	// Clear Codex channel toggles
 	defaultCfg.Notify.Codex.Channels.Feishu.Enabled = false
 	defaultCfg.Notify.Codex.Channels.System.Enabled = false
+	defaultCfg.Notify.Codex.Channels.WechatWork.Enabled = false
+	defaultCfg.Notify.Codex.Channels.WechatWork.WebhookURL = ""
 	defaultCfg.Notify.Codex.Events = nil
 	if err := config.Save(cfgPath, defaultCfg); err != nil {
 		return fmt.Errorf("保存默认配置失败: %w", err)
