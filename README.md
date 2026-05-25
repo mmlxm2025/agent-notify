@@ -1,16 +1,28 @@
-# agent-notify
+<div align="center">
+
+# Agent Notify
+
+<p align="center"> 一个面向 AI Agent 的通知配置工具 </p>
 
 [![Go Version](https://img.shields.io/badge/Go-%3E%3D1.25-blue.svg)](https://go.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Release](https://img.shields.io/github/v/release/hellolib/agent-notify.svg)](https://github.com/hellolib/agent-notify/releases)
 
+</div>
+
+## 项目简介
+
 一个面向 AI Agent 的通知配置工具。支持将 Claude Code、Codex 等 Agent 的事件通知推送到飞书和系统通知。
 
-## 工作流程
+## ❤️ 赞助
 
-<p align="center">
-  <img src="assist/workflow.png" alt="工作流程图" />
-</p>
+<a href="https://www.ddshub.cc/register?aff=E7N6PDYWW4N5">
+<img src="assist/ddshub/logo.png" alt="DDSHub" />
+</a>
+
+感谢 **[DDS（呆呆兽）](https://www.ddshub.cc/register?aff=E7N6PDYWW4N5)** 赞助本项目！呆呆兽是一家专注 Claude 和 CodeX 的可靠高效 API 中转站，为个人和企业用户提供极具性价比的国内 Claude / CodeX API 直连加速服务。支持 Claude Haiku / Opus / Sonnet 等满血模型。企业客户更可享受定制化分组和技术支持服务。
+
+访问 [DDS（呆呆兽）](https://www.ddshub.cc/register?aff=E7N6PDYWW4N5) 获取更多详情。
 
 ## 功能特性
 
@@ -18,7 +30,6 @@
 - 📱 **飞书通知** - 支持一键扫码绑定、支持飞书机器人消息推送
 - 💬 **企业微信通知** - 支持通过企业微信群机器人 Webhook 推送通知消息
 - 🔔 **事件订阅** - Claude Code 支持 4 种事件；Codex 支持 2 种事件
-
 
 ### 支持的事件
 
@@ -34,6 +45,9 @@
 - Claude Code 通过 `~/.claude/settings.json` 的 hooks 订阅四个事件（`PermissionRequest`、`Notification`、`Stop`、`PostToolUseFailure`）。
 - Codex 通过 `~/.codex/hooks.json` 订阅 `PermissionRequest` 与 `Stop`，分别映射到 `permission_required` 与 `run_completed`。`input_required` 与 `run_failed` Codex 目前没有对应 hook，因此暂不支持。
 
+### 支持的平台
+
+MacOS 、Linux 、Windows
 
 ## 快速开始
 
@@ -46,109 +60,43 @@ npx agent-notify
 - macOS / Linux: `~/.agent-notify/agent-notify`
 - Windows: `~/.agent-notify/agent-notify.exe`
 
-之后每次运行 `npx agent-notify` 时都会检查本地二进制版本：
+之后每次运行都会检查本地二进制版本：不存在则自动下载，版本落后则自动更新，否则直接运行。launcher 不会持久修改 PATH，始终用绝对路径执行。
 
-- 本地不存在：自动下载
-- 本地版本落后：自动更新
-- 本地版本不落后：直接运行本地二进制
+> **注意**: Codex 通过 `~/.codex/hooks.json` 接入官方 hooks 系统，目前仅订阅 `PermissionRequest`、`Stop` 两个事件。首次安装后请在 codex 内运行 `/hooks` 完成 trust 审核。
 
-launcher 不会持久修改你的 PATH，而是始终用绝对路径执行已安装的真实二进制。
 
-> **注意**: Codex 通过 `~/.codex/hooks.json` 接入 Codex 官方 hooks 系统，目前仅订阅 `PermissionRequest`、`Stop` 两个事件（对应 `permission_required` 与 `run_completed`）。首次安装后请在 codex 内运行 `/hooks` 完成 trust 审核。
+## 配置
 
-### 企业微信机器人配置指引
-
-1. **创建单人通知群**：在企业微信中发起群聊（随便拉几个同事），在群聊创建成功后，**不要在群里发言/讲话**，直接将其他人移出群聊。此时该群将变成你个人的单人通知群。
-2. **添加机器人**：点击群设置 -> 「群机器人」 -> 「添加机器人」 -> 「新创建一个机器人」，命名并保存。
-3. **获取 Webhook 地址**：复制生成的 Webhook 地址，格式类似于：`https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`。
-4. **绑定配置**：运行 `npx agent-notify` 并在配置向导中选择启用企业微信渠道，粘贴上述复制的 Webhook URL 即可。
-
-### 支持的平台
-
-- macOS amd64
-- macOS arm64
-- Linux amd64
-- Linux arm64
-- Windows amd64
-- Windows arm64
-
-## 配置文件
-
-agent-notify 自身配置位于 `~/.agent-notify/config.yaml`。
-
-Agent 集成配置位置：
+agent-notify 自身配置位于 `~/.agent-notify/config.yaml`。Agent 集成配置位置：
 
 - Claude Code: `~/.claude/settings.json`（写入 hooks → 命令 `agent-notify handle-claude-hook`）
 - Codex: `~/.codex/hooks.json`（写入 hooks → 命令 `agent-notify handle-codex-hook`，需在 codex 内运行 `/hooks` 完成 trust）
 
-```yaml
-version: 1
-agent:
-  claude_code:
-    enabled: true
-    install_scope: user
-  codex:
-    enabled: false
-    install_scope: user
-notify:
-  claude_code:
-    events:
-      - permission_required
-      - input_required
-      - run_completed
-      - run_failed
-    channels:
-      system:
-        enabled: true
-      feishu:
-        enabled: false
-      wechat_work:
-        enabled: false
-        webhook_url: ""
-  codex:
-    events:
-      - permission_required
-      - run_completed
-    channels:
-      system:
-        enabled: false
-      feishu:
-        enabled: false
-      wechat_work:
-        enabled: false
-        webhook_url: ""
-behavior:
-  dedupe_seconds: 60
-  send_timeout_seconds: 5
-  locale: zh-CN
-```
+### 企业微信机器人配置
+
+1. **创建单人通知群**：在企业微信中发起群聊（随便拉几个同事），创建成功后**不要在群里发言**，直接将其他人移出，此时该群将变成你的单人通知群；
+2. **添加机器人**：「群设置」->「消息推送」->「添加」-> 「自定义消息推送」，命名并保存；
+3. **获取 Webhook 地址**：复制生成的地址，格式类似 `https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=xxx`；
+4. **绑定配置**：运行 `npx agent-notify`，在配置向导中选择启用企业微信渠道，粘贴 Webhook URL 即可；
+> 旧版企业微信添加机器人步骤：「群设置」->「群机器人」->「添加机器人」-> 「新建机器人」，命名并保存
+
+## 工作流程
+
+<p align="center">
+  <img src="assist/workflow.png" alt="工作流程图" />
+</p>
 
 ## 效果图
-### 软件配置
 
-<p align="center">
-  <img src="assist/launch-setting.png" alt="软件配置" width="50%" />
-</p>
-
-### 飞书绑定
-
-<p align="center">
-  <img src="assist/feishu-bind.png" alt="飞书绑定" width="50%" />
-</p>
-
-### 飞书通知
-
-<p align="center">
-  <img src="assist/feishu-notify-phone.png" alt="飞书通知" width="50%" />
-</p>
-
-### 系统通知
-
-<p align="center">
-  <img src="assist/system-notify.png" alt="系统通知" />
-</p>
-
+| |                                                              |
+|:---:|:------------------------------------------------------------:|
+| <img src="assist/launch-setting.png" alt="软件配置" width="75%"> |  <img src="assist/feishu-bind.png" alt="飞书绑定" width="75%">   |
+| **软件配置** |                           **飞书绑定**                           |
+| <img src="assist/feishu-notify-phone.png" alt="飞书通知" width="50%"> | <img src="assist/wecom-notify.jpg" alt="企业微信通知" width="55%"> |
+| **飞书通知** |                          **企业微信通知**                          |
+| ![系统通知](assist/system-notify.png) |                                                              |
+| **系统通知** |                                                              |
 
 ## Friendship Link
 
-Thanks for the support and feedback from the friends at [LINUX DO](https://linux.do/). 
+Thanks for the support and feedback from the friends at [LINUX DO](https://linux.do/).
