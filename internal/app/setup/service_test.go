@@ -32,6 +32,10 @@ func (m *mockIntegration) Install(settingsPath, binaryPath string) error {
 	return m.installErr
 }
 
+func (m *mockIntegration) Uninstall(settingsPath string) error {
+	return nil
+}
+
 func (m *mockIntegration) IsHookInstalled(settingsPath string) (bool, error) {
 	return m.isHookInstalled, nil
 }

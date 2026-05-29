@@ -18,6 +18,11 @@ type Integration interface {
 	// settings file at settingsPath with the given binaryPath
 	Install(settingsPath, binaryPath string) error
 
+	// Uninstall removes only the hook entries written by agent-notify from
+	// the settings file at settingsPath. Other hooks defined by the user are
+	// preserved. Returns nil if the settings file does not exist.
+	Uninstall(settingsPath string) error
+
 	// IsHookInstalled checks if agent-notify hooks are installed in the settings file.
 	// Returns true if the hooks are configured, false otherwise.
 	IsHookInstalled(settingsPath string) (bool, error)

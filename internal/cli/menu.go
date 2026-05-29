@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/hellolib/agent-notify/internal/agentintegrations"
 	"github.com/hellolib/agent-notify/internal/common"
 	"github.com/hellolib/agent-notify/internal/config"
 	"github.com/hellolib/agent-notify/internal/feishucli"
@@ -186,6 +187,23 @@ func runCleanConfig(streams Streams, prompter Prompter) error {
 	}
 	if err := os.Remove(logPath); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("删除日志文件失败: %w", err)
+	}
+
+	// 清理 Claude / Codex 中由本插件写入的 hook（保留用户挂载的其他 hook）
+	for _, integ := range []agentintegrations.Integration{
+		agentintegrations.NewClaudeIntegration(),
+		agentintegrations.NewCodexIntegration(),
+	} {
+		settingsPath, err := integ.SettingsPath("user")
+		if err != nil {
+			fmt.Fprintf(streams.Stdout, "⚠️  跳过 %s hooks 清理: %v\n", integ.Name(), err)
+			continue
+		}
+		if err := integ.Uninstall(settingsPath); err != nil {
+			fmt.Fprintf(streams.Stdout, "⚠️  清理 %s hooks 失败 (%s): %v\n", integ.Name(), settingsPath, err)
+			continue
+		}
+		fmt.Fprintf(streams.Stdout, "✅ 已清理 %s hooks (%s)\n", integ.Name(), settingsPath)
 	}
 
 	// 保存一个干净的默认配置（所有通知都关闭）

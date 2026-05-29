@@ -1,13 +1,10 @@
 package agentintegrations
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 
 	"github.com/hellolib/agent-notify/internal/codexhooks"
 	"github.com/hellolib/agent-notify/internal/common"
@@ -51,54 +48,20 @@ func (c *CodexIntegration) SettingsPath(scope string) (string, error) {
 }
 
 // Install 写入 Codex hooks.json，订阅 PermissionRequest 与 Stop 事件。
+// 已存在 agent-notify hook 的事件会被跳过；用户挂载的其他 hook 原样保留。
 func (c *CodexIntegration) Install(settingsPath, binaryPath string) error {
 	return codexhooks.Install(settingsPath, common.ResolveBinaryPath(binaryPath))
 }
 
+// Uninstall removes only the hook entries written by agent-notify from
+// Codex's hooks.json. User-defined hooks are preserved. The
+// [features] hooks toggle in config.toml is NOT removed — it is a generic
+// switch other hooks may depend on.
+func (c *CodexIntegration) Uninstall(settingsPath string) error {
+	return codexhooks.Uninstall(settingsPath)
+}
+
 // IsHookInstalled 检查 Codex hooks.json 中是否已经登记了 handle-codex-hook。
 func (c *CodexIntegration) IsHookInstalled(settingsPath string) (bool, error) {
-	data, err := os.ReadFile(settingsPath)
-	if errors.Is(err, os.ErrNotExist) {
-		return false, nil
-	}
-	if err != nil {
-		return false, err
-	}
-
-	settings := map[string]any{}
-	if err := json.Unmarshal(data, &settings); err != nil {
-		return false, fmt.Errorf("failed to parse hooks.json: %w", err)
-	}
-
-	hooks, ok := settings["hooks"].(map[string]any)
-	if !ok {
-		return false, nil
-	}
-
-	pr, ok := hooks["PermissionRequest"].([]any)
-	if !ok || len(pr) == 0 {
-		return false, nil
-	}
-
-	entry, ok := pr[0].(map[string]any)
-	if !ok {
-		return false, nil
-	}
-
-	hookList, ok := entry["hooks"].([]any)
-	if !ok || len(hookList) == 0 {
-		return false, nil
-	}
-
-	hook, ok := hookList[0].(map[string]any)
-	if !ok {
-		return false, nil
-	}
-
-	cmd, ok := hook["command"].(string)
-	if !ok {
-		return false, nil
-	}
-
-	return strings.Contains(cmd, "handle-codex-hook"), nil
+	return codexhooks.IsInstalled(settingsPath)
 }

@@ -1,14 +1,12 @@
 package agentintegrations
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 
+	"github.com/hellolib/agent-notify/internal/claudehooks"
 	"github.com/hellolib/agent-notify/internal/common"
 )
 
@@ -48,111 +46,18 @@ func (c *ClaudeIntegration) SettingsPath(scope string) (string, error) {
 }
 
 // Install configures Claude Code to use agent-notify by setting up hooks.
+// 已存在 agent-notify hook 的事件会被跳过；用户挂载的其他 hook 原样保留。
 func (c *ClaudeIntegration) Install(settingsPath, binaryPath string) error {
-	binaryPath = common.ResolveBinaryPath(binaryPath)
-	command := binaryPath + " handle-claude-hook"
+	return claudehooks.Install(settingsPath, common.ResolveBinaryPath(binaryPath))
+}
 
-	buildEntry := func() []map[string]any {
-		return []map[string]any{
-			{
-				"hooks": []map[string]any{
-					{
-						"type":    "command",
-						"command": command,
-					},
-				},
-			},
-		}
-	}
-
-	hooks := map[string]any{
-		"PermissionRequest":  buildEntry(),
-		"Notification":       buildEntry(),
-		"Stop":               buildEntry(),
-		"PostToolUseFailure": buildEntry(),
-	}
-
-	settings := map[string]any{}
-
-	data, err := os.ReadFile(settingsPath)
-	if err == nil {
-		if err := json.Unmarshal(data, &settings); err != nil {
-			return fmt.Errorf("failed to parse settings.json: %w", err)
-		}
-	} else if !errors.Is(err, os.ErrNotExist) {
-		return fmt.Errorf("failed to read settings.json: %w", err)
-	}
-
-	existingHooks, _ := settings["hooks"].(map[string]any)
-	if existingHooks == nil {
-		existingHooks = map[string]any{}
-	}
-	for key, value := range hooks {
-		existingHooks[key] = value
-	}
-	settings["hooks"] = existingHooks
-
-	if err := os.MkdirAll(filepath.Dir(settingsPath), 0o755); err != nil {
-		return fmt.Errorf("failed to create settings directory: %w", err)
-	}
-
-	out, err := json.MarshalIndent(settings, "", "  ")
-	if err != nil {
-		return fmt.Errorf("failed to marshal settings: %w", err)
-	}
-
-	if err := os.WriteFile(settingsPath, out, 0o644); err != nil {
-		return fmt.Errorf("failed to write settings.json: %w", err)
-	}
-
-	return nil
+// Uninstall removes only the hook entries written by agent-notify from
+// Claude Code's settings.json. User-defined hooks are preserved.
+func (c *ClaudeIntegration) Uninstall(settingsPath string) error {
+	return claudehooks.Uninstall(settingsPath)
 }
 
 // IsHookInstalled checks if agent-notify hooks are installed in the settings file.
 func (c *ClaudeIntegration) IsHookInstalled(settingsPath string) (bool, error) {
-	data, err := os.ReadFile(settingsPath)
-	if errors.Is(err, os.ErrNotExist) {
-		return false, nil
-	}
-	if err != nil {
-		return false, err
-	}
-
-	settings := map[string]any{}
-	if err := json.Unmarshal(data, &settings); err != nil {
-		return false, fmt.Errorf("failed to parse settings.json: %w", err)
-	}
-
-	hooks, ok := settings["hooks"].(map[string]any)
-	if !ok {
-		return false, nil
-	}
-
-	// Check if PermissionRequest hook exists and contains handle-claude-hook
-	pr, ok := hooks["PermissionRequest"].([]any)
-	if !ok || len(pr) == 0 {
-		return false, nil
-	}
-
-	entry, ok := pr[0].(map[string]any)
-	if !ok {
-		return false, nil
-	}
-
-	hookList, ok := entry["hooks"].([]any)
-	if !ok || len(hookList) == 0 {
-		return false, nil
-	}
-
-	hook, ok := hookList[0].(map[string]any)
-	if !ok {
-		return false, nil
-	}
-
-	cmd, ok := hook["command"].(string)
-	if !ok {
-		return false, nil
-	}
-
-	return strings.Contains(cmd, "handle-claude-hook"), nil
+	return claudehooks.IsInstalled(settingsPath)
 }
