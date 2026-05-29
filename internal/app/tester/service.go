@@ -22,11 +22,12 @@ type ConfigLoader interface {
 
 // Service handles test notifications.
 type Service struct {
-	feishuPreparer    FeishuPreparer
-	configLoader      ConfigLoader
-	feishuSender      notify.Sender
-	systemSender      notify.Sender
-	wechatWorkSender  notify.Sender
+	feishuPreparer   FeishuPreparer
+	configLoader     ConfigLoader
+	feishuSender     notify.Sender
+	systemSender     notify.Sender
+	wechatWorkSender notify.Sender
+	barkSender       notify.Sender
 }
 
 // NewService creates a new tester service.
@@ -64,6 +65,11 @@ func WithSystemSender(sender notify.Sender) Option {
 // WithWechatWorkSender sets the WeChat Work sender.
 func WithWechatWorkSender(sender notify.Sender) Option {
 	return func(s *Service) { s.wechatWorkSender = sender }
+}
+
+// WithBarkSender sets the Bark sender.
+func WithBarkSender(sender notify.Sender) Option {
+	return func(s *Service) { s.barkSender = sender }
 }
 
 // TestFeishuResult contains the result of a Feishu test.
@@ -115,6 +121,20 @@ func (s *Service) TestWechatWork(ctx context.Context, webhookURL string) (*TestW
 	return &TestWechatWorkResult{Message: "企业微信测试通知已发送"}, nil
 }
 
+// TestBarkResult contains the result of a Bark test.
+type TestBarkResult struct {
+	Message string
+}
+
+// TestBark sends a test Bark notification using the provided webhook URL.
+func (s *Service) TestBark(ctx context.Context, webhookURL string) (*TestBarkResult, error) {
+	msg := notify.Message{Event: "permission_required", Title: "Agent Notify 测试", Body: "这是一条 Bark 测试消息"}
+	if err := s.barkNotificationSender(webhookURL).Send(ctx, msg); err != nil {
+		return nil, err
+	}
+	return &TestBarkResult{Message: "Bark 测试通知已发送"}, nil
+}
+
 func (s *Service) defaultConfigPath() (string, error) {
 	if s.configLoader != nil {
 		return s.configLoader.DefaultPath()
@@ -148,4 +168,11 @@ func (s *Service) wechatWorkNotificationSender(webhookURL string) notify.Sender 
 		return s.wechatWorkSender
 	}
 	return notify.NewWechatWorkSender(webhookURL)
+}
+
+func (s *Service) barkNotificationSender(webhookURL string) notify.Sender {
+	if s.barkSender != nil {
+		return s.barkSender
+	}
+	return notify.NewBarkSender(webhookURL)
 }

@@ -16,6 +16,7 @@ func newTestCmd(ctx context.Context, streams Streams) *cobra.Command {
 	cmd.AddCommand(
 		newTestFeishuCmd(ctx, streams),
 		newTestSystemCmd(ctx, streams),
+		newTestBarkCmd(ctx, streams),
 	)
 	return cmd
 }
@@ -25,16 +26,7 @@ func newTestFeishuCmd(ctx context.Context, streams Streams) *cobra.Command {
 		Use:   "feishu",
 		Short: "Send a Feishu test notification",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// Use the tester service
-			svc := tester.NewService(
-				tester.WithFeishuPreparer(&feishuPreparer{}),
-			)
-			result, err := svc.TestFeishu(ctx)
-			if err != nil {
-				return err
-			}
-			_, err = fmt.Fprintln(streams.Stdout, result.Message)
-			return err
+			return runTestFeishu(ctx, streams)
 		},
 	}
 }
@@ -55,9 +47,12 @@ func newTestSystemCmd(ctx context.Context, streams Streams) *cobra.Command {
 	}
 }
 
-// feishuPreparer implements tester.FeishuPreparer
-type feishuPreparer struct{}
-
-func (p *feishuPreparer) EnsureReady(ctx context.Context) error {
-	return prepareFeishuCLI(ctx)
+func newTestBarkCmd(ctx context.Context, streams Streams) *cobra.Command {
+	return &cobra.Command{
+		Use:   "bark",
+		Short: "Send a Bark test notification",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runTestBark(ctx, streams)
+		},
+	}
 }

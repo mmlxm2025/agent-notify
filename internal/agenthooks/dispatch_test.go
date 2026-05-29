@@ -73,3 +73,19 @@ func TestBuildSendersSendsSubscribedCodexEvent(t *testing.T) {
 		t.Fatalf("len(senders) = %d, want 2", len(senders))
 	}
 }
+
+func TestBuildSendersAddsBarkForCodex(t *testing.T) {
+	cfg := config.Default()
+	cfg.Notify.Codex.Channels.Bark.Enabled = true
+	cfg.Notify.Codex.Channels.Bark.WebhookURL = "https://api.day.app/key"
+	cfg.Notify.Codex.Events = []string{"run_completed"}
+
+	senders := buildSenders(cfg, notify.Message{Agent: "codex", Event: "run_completed"})
+
+	if len(senders) != 1 {
+		t.Fatalf("len(senders) = %d, want 1", len(senders))
+	}
+	if senders[0].Name() != "bark" {
+		t.Fatalf("senders[0] = %q, want bark", senders[0].Name())
+	}
+}

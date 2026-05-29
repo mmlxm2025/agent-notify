@@ -103,6 +103,22 @@ func TestTestSystem_UsesInjectedSender(t *testing.T) {
 	}
 }
 
+func TestTestBark_UsesInjectedSender(t *testing.T) {
+	sender := &fakeSender{}
+	svc := NewService(WithBarkSender(sender))
+
+	result, err := svc.TestBark(context.Background(), "https://api.day.app/key")
+	if err != nil {
+		t.Fatalf("TestBark() error = %v", err)
+	}
+	if result == nil || result.Message == "" {
+		t.Fatal("expected non-empty result")
+	}
+	if !sender.called {
+		t.Fatal("expected injected sender to be called")
+	}
+}
+
 func TestTestFeishu_IgnoresEnabledFlag(t *testing.T) {
 	// Test notification intentionally ignores the enabled flag in config.
 	// This allows users to verify Feishu connectivity before enabling it permanently.

@@ -96,6 +96,14 @@ func runInstallClaudeHooks(scope, binaryPath string) error {
 }
 
 func runTestFeishu(ctx context.Context, streams Streams) error {
+	cfg, _, err := loadDefaultConfig()
+	if err != nil {
+		return err
+	}
+	if !feishuEnabled(cfg) {
+		return fmt.Errorf("feishu is disabled")
+	}
+
 	svc := tester.NewService(
 		tester.WithFeishuPreparer(&feishuPreparerAdapter{}),
 	)
@@ -105,6 +113,10 @@ func runTestFeishu(ctx context.Context, streams Streams) error {
 	}
 	fmt.Fprintln(streams.Stdout, "✅ "+result.Message)
 	return nil
+}
+
+func feishuEnabled(cfg config.Config) bool {
+	return cfg.Notify.ClaudeCode.Channels.Feishu.Enabled || cfg.Notify.Codex.Channels.Feishu.Enabled
 }
 
 func runTestSystem(ctx context.Context, streams Streams) error {
@@ -215,18 +227,20 @@ func printCurrentNotifyConfig(streams Streams) error {
 	}
 
 	// Fixed width table with ASCII borders
-	fmt.Fprintln(streams.Stdout, "+----------------+------+------+--------+")
-	fmt.Fprintln(streams.Stdout, "| Agent          | Fei  | Sys  | WXWork |")
-	fmt.Fprintln(streams.Stdout, "+----------------+------+------+--------+")
-	fmt.Fprintf(streams.Stdout, "| %-14s |  %s   |  %s   |   %s    |\n", "Claude Code",
+	fmt.Fprintln(streams.Stdout, "+----------------+------+------+--------+------+")
+	fmt.Fprintln(streams.Stdout, "| Agent          | Fei  | Sys  | WXWork | Bark |")
+	fmt.Fprintln(streams.Stdout, "+----------------+------+------+--------+------+")
+	fmt.Fprintf(streams.Stdout, "| %-14s |  %s   |  %s   |   %s    |  %s   |\n", "Claude Code",
 		statusIcon(cfg.Notify.ClaudeCode.Channels.Feishu.Enabled),
 		statusIcon(cfg.Notify.ClaudeCode.Channels.System.Enabled),
-		statusIcon(cfg.Notify.ClaudeCode.Channels.WechatWork.Enabled))
-	fmt.Fprintf(streams.Stdout, "| %-14s |  %s   |  %s   |   %s    |\n", "Codex",
+		statusIcon(cfg.Notify.ClaudeCode.Channels.WechatWork.Enabled),
+		statusIcon(cfg.Notify.ClaudeCode.Channels.Bark.Enabled))
+	fmt.Fprintf(streams.Stdout, "| %-14s |  %s   |  %s   |   %s    |  %s   |\n", "Codex",
 		statusIcon(cfg.Notify.Codex.Channels.Feishu.Enabled),
 		statusIcon(cfg.Notify.Codex.Channels.System.Enabled),
-		statusIcon(cfg.Notify.Codex.Channels.WechatWork.Enabled))
-	fmt.Fprintln(streams.Stdout, "+----------------+------+------+--------+")
+		statusIcon(cfg.Notify.Codex.Channels.WechatWork.Enabled),
+		statusIcon(cfg.Notify.Codex.Channels.Bark.Enabled))
+	fmt.Fprintln(streams.Stdout, "+----------------+------+------+--------+------+")
 
 	return nil
 }

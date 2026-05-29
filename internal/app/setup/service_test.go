@@ -41,8 +41,11 @@ type mockPrompter struct {
 	selectIdx     int
 	selectResult  string
 	multiResult   []string
+	multiResults  [][]string
+	multiOptions  [][]PromptOption
 	confirmResult bool
 	inputResult   string
+	inputResults  []string
 }
 
 func (m *mockPrompter) Select(message string, options []PromptOption, defaultValue string) (string, error) {
@@ -50,6 +53,12 @@ func (m *mockPrompter) Select(message string, options []PromptOption, defaultVal
 }
 
 func (m *mockPrompter) MultiSelect(message string, options []PromptOption, defaults []string) ([]string, error) {
+	m.multiOptions = append(m.multiOptions, options)
+	if len(m.multiResults) > 0 {
+		value := m.multiResults[0]
+		m.multiResults = m.multiResults[1:]
+		return value, nil
+	}
 	return m.multiResult, nil
 }
 
@@ -58,6 +67,11 @@ func (m *mockPrompter) Confirm(message string, defaultValue bool) (bool, error) 
 }
 
 func (m *mockPrompter) Input(message, defaultValue string) (string, error) {
+	if len(m.inputResults) > 0 {
+		value := m.inputResults[0]
+		m.inputResults = m.inputResults[1:]
+		return value, nil
+	}
 	return m.inputResult, nil
 }
 

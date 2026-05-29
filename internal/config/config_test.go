@@ -31,11 +31,17 @@ func TestDefaultConfigUsesAgentScopedNotifyConfig(t *testing.T) {
 	if cfg.Notify.ClaudeCode.Channels.Feishu.Enabled {
 		t.Fatal("Claude Code feishu should be disabled by default")
 	}
+	if cfg.Notify.ClaudeCode.Channels.Bark.Enabled {
+		t.Fatal("Claude Code bark should be disabled by default")
+	}
 	if cfg.Notify.Codex.Channels.System.Enabled {
 		t.Fatal("Codex system notification should be disabled by default")
 	}
 	if cfg.Notify.Codex.Channels.Feishu.Enabled {
 		t.Fatal("Codex feishu should be disabled by default")
+	}
+	if cfg.Notify.Codex.Channels.Bark.Enabled {
+		t.Fatal("Codex bark should be disabled by default")
 	}
 }
 
@@ -48,6 +54,8 @@ func TestSaveAndLoadRoundTrip(t *testing.T) {
 	want.Notify.ClaudeCode.Events = []string{"permission_required", "run_completed"}
 	want.Notify.Codex.Channels.System.Enabled = true
 	want.Notify.Codex.Channels.Feishu.Enabled = true
+	want.Notify.Codex.Channels.Bark.Enabled = true
+	want.Notify.Codex.Channels.Bark.WebhookURL = "https://api.day.app/key"
 
 	if err := Save(path, want); err != nil {
 		t.Fatalf("Save() error = %v", err)
