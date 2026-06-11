@@ -2,7 +2,7 @@
 
 # Agent Notify
 
-<p align="center"> A notification tool for AI coding agents </p>
+<p align="center"><b>Stop babysitting your AI coding agent.</b><br/>Get pinged on your phone the moment Claude Code needs you — or finishes.</p>
 
 [![Go Version](https://img.shields.io/badge/Go-%3E%3D1.25-blue.svg)](https://go.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -20,9 +20,11 @@ Supported delivery channels: **OS-native system notifications**, **Feishu/Lark**
 
 ## Features
 
-| Channel | Description | Setup |
+### Supported Channel
+
+| Channel | Description | Setup   |
 |:--------|------|---------|
-| 🖥️ System Notification | Native notifications on macOS, Linux, and Windows | — |
+| 🖥️ System Notification | Native notifications on macOS, Linux, and Windows | Default |
 | <img src="assist/logo/feishu.png" width="24" align="absmiddle"> Feishu / Lark | One-click QR-code binding; push via Feishu bot messages | QR scan |
 | <img src="assist/logo/qiyeweixin.png" width="24" align="absmiddle"> WeChat Work | Push notifications via a WeChat Work group bot webhook | Webhook |
 | <img src="assist/logo/dingding.png" width="24" align="absmiddle"> DingTalk | Push notifications via a DingTalk group bot webhook | Webhook |

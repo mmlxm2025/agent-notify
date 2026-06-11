@@ -2,7 +2,7 @@
 
 # Agent Notify
 
-<p align="center"> 一个面向 AI Agent 的通知配置工具 </p>
+<p align="center"><b>别再盯着 AI Agent 跑了</b><br/>Claude Code 需要你、或跑完时,手机立刻叮一声。</p>
 
 [![Go Version](https://img.shields.io/badge/Go-%3E%3D1.25-blue.svg)](https://go.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -14,14 +14,14 @@
 
 ## 项目简介
 
-一个面向 AI Agent 的通知配置工具。支持将 Claude Code、Codex 等 Agent 的事件通知推送到飞书、企业微信、Bark 和系统通知。
+一个面向 AI Agent 的通知配置工具。支持将 Claude Code、Codex 等 Agent 的事件通知推送到飞书、企业微信、钉钉、Bark 和系统通知。
 
 ## 功能特性
-
-|   通知渠道   | 说明 | 绑定方式    |
-|:--------|------|---------|
-| 🖥️ 系统通知 | 支持 macOS、Linux、Windows 系统通知 |         |
-| <img src="assist/logo/feishu.png" width="24" align="absmiddle"> 飞书   | 支持一键扫码绑定、支持飞书机器人消息推送 | 二维码扫描   |
+### 支持的通知渠道
+|   通知渠道   | 说明 | 绑定方式   |
+|:--------|------|--------|
+| 🖥️ 系统通知 | 支持 macOS、Linux、Windows 系统通知 | 原生支持   |
+| <img src="assist/logo/feishu.png" width="24" align="absmiddle"> 飞书   | 支持一键扫码绑定、支持飞书机器人消息推送 | 二维码扫描  |
 | <img src="assist/logo/qiyeweixin.png" width="24" align="absmiddle"> 企业微信  | 支持通过企业微信群机器人 Webhook 推送通知消息 | Webhook |
 | <img src="assist/logo/dingding.png" width="24" align="absmiddle"> 钉钉  | 支持通过钉钉群机器人 Webhook 推送通知消息 | Webhook |
 | <img src="assist/logo/bark.png" width="24" align="absmiddle"> Bark  | 支持通过 Bark Webhook URL 推送到 iOS 设备 | Webhook |

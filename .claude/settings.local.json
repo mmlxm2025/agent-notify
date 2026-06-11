@@ -10,7 +10,8 @@
       "Bash(codex /hooks --help)",
       "Bash(codex features *)",
       "Bash(git *)",
-      "Bash(rtk *)"
+      "Bash(rtk *)",
+      "WebFetch(domain:ccb.agent-aura.top)"
     ]
   }
 }
