@@ -30,6 +30,7 @@ type Service struct {
 	wechatWorkSender notify.Sender
 	dingTalkSender   notify.Sender
 	barkSender       notify.Sender
+	ntfySender       notify.Sender
 }
 
 // NewService creates a new tester service.
@@ -77,6 +78,11 @@ func WithDingTalkSender(sender notify.Sender) Option {
 // WithBarkSender sets the Bark sender.
 func WithBarkSender(sender notify.Sender) Option {
 	return func(s *Service) { s.barkSender = sender }
+}
+
+// WithNtfySender sets the Ntfy sender.
+func WithNtfySender(sender notify.Sender) Option {
+	return func(s *Service) { s.ntfySender = sender }
 }
 
 // TestFeishuResult contains the result of a Feishu test.
@@ -156,6 +162,20 @@ func (s *Service) TestBark(ctx context.Context, webhookURL string) (*TestBarkRes
 	return &TestBarkResult{Message: i18n.T("test.bark_sent")}, nil
 }
 
+// TestNtfyResult contains the result of a Ntfy test.
+type TestNtfyResult struct {
+	Message string
+}
+
+// TestNtfy sends a test Ntfy notification using the provided topic URL.
+func (s *Service) TestNtfy(ctx context.Context, topicURL string) (*TestNtfyResult, error) {
+	msg := notify.Message{Event: "permission_required", Title: i18n.T("test.msg_title"), Body: i18n.T("test.msg_body_ntfy")}
+	if err := s.ntfyNotificationSender(topicURL).Send(ctx, msg); err != nil {
+		return nil, err
+	}
+	return &TestNtfyResult{Message: i18n.T("test.ntfy_sent")}, nil
+}
+
 func (s *Service) defaultConfigPath() (string, error) {
 	if s.configLoader != nil {
 		return s.configLoader.DefaultPath()
@@ -203,4 +223,11 @@ func (s *Service) barkNotificationSender(webhookURL string) notify.Sender {
 		return s.barkSender
 	}
 	return notify.NewBarkSender(webhookURL)
+}
+
+func (s *Service) ntfyNotificationSender(topicURL string) notify.Sender {
+	if s.ntfySender != nil {
+		return s.ntfySender
+	}
+	return notify.NewNtfySender(topicURL)
 }

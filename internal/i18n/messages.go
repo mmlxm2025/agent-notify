@@ -18,6 +18,7 @@ var catalog = map[string]map[Lang]string{
 	"test.wechat":   {ZhCN: "企业微信", EnUS: "WeChat Work"},
 	"test.dingtalk": {ZhCN: "钉钉", EnUS: "DingTalk"},
 	"test.bark":     {ZhCN: "Bark", EnUS: "Bark"},
+	"test.ntfy":     {ZhCN: "Ntfy", EnUS: "Ntfy"},
 	"test.back":     {ZhCN: "返回", EnUS: "Back"},
 
 	// ── Channel sub-menu ───────────────────────────────────────
@@ -26,6 +27,7 @@ var catalog = map[string]map[Lang]string{
 	"channel.wechat":   {ZhCN: "企业微信", EnUS: "WeChat Work"},
 	"channel.dingtalk": {ZhCN: "钉钉", EnUS: "DingTalk"},
 	"channel.bark":     {ZhCN: "Bark", EnUS: "Bark"},
+	"channel.ntfy":     {ZhCN: "Ntfy", EnUS: "Ntfy"},
 	"channel.back":     {ZhCN: "返回", EnUS: "Back"},
 
 	// ── Setup flow prompts ─────────────────────────────────────
@@ -46,6 +48,7 @@ var catalog = map[string]map[Lang]string{
 	"prompt.wechat_webhook":   {ZhCN: "企业微信群机器人 Webhook URL", EnUS: "WeChat Work Bot Webhook URL"},
 	"prompt.dingtalk_webhook": {ZhCN: "钉钉群机器人 Webhook URL", EnUS: "DingTalk Bot Webhook URL"},
 	"prompt.bark_webhook":     {ZhCN: "Bark Webhook URL", EnUS: "Bark Webhook URL"},
+	"prompt.ntfy_topic_url":   {ZhCN: "Ntfy Topic URL", EnUS: "Ntfy Topic URL"},
 
 	// ── Survey help text ───────────────────────────────────────
 	"prompt.help.multiselect": {ZhCN: "[↑↓ 移动, 空格 选择/取消, Enter 确认] ", EnUS: "[↑↓ navigate, space toggle, enter confirm] "},
@@ -66,6 +69,7 @@ var catalog = map[string]map[Lang]string{
 	"err.wechat_not_configured":   {ZhCN: "未配置企业微信 Webhook URL，请先运行配置向导", EnUS: "WeChat Work Webhook URL not configured; please run setup first"},
 	"err.dingtalk_not_configured": {ZhCN: "未配置钉钉 Webhook URL，请先运行配置向导", EnUS: "DingTalk Webhook URL not configured; please run setup first"},
 	"err.bark_not_configured":     {ZhCN: "未配置 Bark Webhook URL，请先运行配置向导", EnUS: "Bark Webhook URL not configured; please run setup first"},
+	"err.ntfy_not_configured":     {ZhCN: "未配置 Ntfy Topic URL，请先运行配置向导", EnUS: "Ntfy Topic URL not configured; please run setup first"},
 
 	// ── Clean / reset flow ─────────────────────────────────────
 	"clean.confirm":          {ZhCN: "确认清理所有配置？", EnUS: "Reset all configuration?"},
@@ -87,10 +91,13 @@ var catalog = map[string]map[Lang]string{
 	// ── Bark init ──────────────────────────────────────────────
 	"bark.init_done": {ZhCN: "✅ Bark Webhook 配置完成", EnUS: "✅ Bark Webhook configured"},
 
+	// ── Ntfy init ──────────────────────────────────────────────
+	"ntfy.init_done": {ZhCN: "✅ Ntfy Topic 配置完成", EnUS: "✅ Ntfy Topic configured"},
+
 	// ── View config table ──────────────────────────────────────
-	"view.header":     {ZhCN: "| Agent        | 飞书 | 系统 | 企业微信 | 钉钉 | Bark |", EnUS: "| Agent        | Feishu|System|  WeCom  | DingT.| Bark |"},
-	"view.separator":  {ZhCN: "+--------------+------+------+----------+------+------+", EnUS: "+--------------+------+------+----------+------+------+"},
-	"view.row_format": {ZhCN: "| %-12s |  %s  |  %s  |    %s    |  %s  |  %s  |", EnUS: "| %-12s |  %s  |  %s  |    %s    |  %s  |  %s  |"},
+	"view.header":     {ZhCN: "| Agent        | 飞书 | 系统 | 企业微信 | 钉钉 | Bark | Ntfy |", EnUS: "| Agent        | Feishu|System|  WeCom  | DingT.| Bark | Ntfy |"},
+	"view.separator":  {ZhCN: "+--------------+------+------+----------+------+------+------+", EnUS: "+--------------+------+------+----------+------+------+------+"},
+	"view.row_format": {ZhCN: "| %-12s |  %s  |  %s  |    %s    |  %s  |  %s  |  %s  |", EnUS: "| %-12s |  %s  |  %s  |    %s    |  %s  |  %s  |  %s  |"},
 
 	// ── Doctor output ──────────────────────────────────────────
 	"doctor.config_file":     {ZhCN: "配置文件: %s\n\n", EnUS: "Config file: %s\n\n"},
@@ -98,8 +105,8 @@ var catalog = map[string]map[Lang]string{
 	"doctor.agent_sep":       {ZhCN: "+--------------+----------+----------------+", EnUS: "+--------------+----------+----------------+"},
 	"doctor.agent_header":    {ZhCN: "| Agent        | 安装状态 | 集成配置       |", EnUS: "| Agent        | Installed| Integration    |"},
 	"doctor.channel_status":  {ZhCN: "【通知渠道状态】", EnUS: "【Notification Channels】"},
-	"doctor.channel_sep":     {ZhCN: "+--------------+------+------+----------+------+------+", EnUS: "+--------------+------+------+----------+------+------+"},
-	"doctor.channel_header":  {ZhCN: "| Agent        | 飞书 | 系统 | 企业微信 | 钉钉 | Bark |", EnUS: "| Agent        | Feishu|System|  WeCom  | DingT.| Bark |"},
+	"doctor.channel_sep":     {ZhCN: "+--------------+------+------+----------+------+------+------+", EnUS: "+--------------+------+------+----------+------+------+------+"},
+	"doctor.channel_header":  {ZhCN: "| Agent        | 飞书 | 系统 | 企业微信 | 钉钉 | Bark | Ntfy |", EnUS: "| Agent        | Feishu|System|  WeCom  | DingT.| Bark | Ntfy |"},
 	"doctor.system_env":      {ZhCN: "【系统环境】", EnUS: "【System Environment】"},
 	"doctor.env_sep":         {ZhCN: "+----------------------+------------+", EnUS: "+----------------------+------------+"},
 	"doctor.env_header":      {ZhCN: "| 检查项               | 状态       |", EnUS: "| Check Item           | Status     |"},
@@ -130,11 +137,13 @@ var catalog = map[string]map[Lang]string{
 	"test.msg_body_wechat":   {ZhCN: "这是一条企业微信测试消息", EnUS: "This is a WeChat Work test notification"},
 	"test.msg_body_dingtalk": {ZhCN: "这是一条钉钉测试消息", EnUS: "This is a DingTalk test notification"},
 	"test.msg_body_bark":     {ZhCN: "这是一条 Bark 测试消息", EnUS: "This is a Bark test notification"},
+	"test.msg_body_ntfy":     {ZhCN: "这是一条 Ntfy 测试消息", EnUS: "This is a Ntfy test notification"},
 	"test.feishu_sent":       {ZhCN: "飞书测试通知已发送", EnUS: "Feishu test notification sent"},
 	"test.system_sent":       {ZhCN: "系统测试通知已发送", EnUS: "System test notification sent"},
 	"test.wechat_sent":       {ZhCN: "企业微信测试通知已发送", EnUS: "WeChat Work test notification sent"},
 	"test.dingtalk_sent":     {ZhCN: "钉钉测试通知已发送", EnUS: "DingTalk test notification sent"},
 	"test.bark_sent":         {ZhCN: "Bark 测试通知已发送", EnUS: "Bark test notification sent"},
+	"test.ntfy_sent":         {ZhCN: "Ntfy 测试通知已发送", EnUS: "Ntfy test notification sent"},
 
 	// ── Setup service messages ─────────────────────────────────
 	"setup.config_file":        {ZhCN: "配置文件: %s\n", EnUS: "Config file: %s\n"},
