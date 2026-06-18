@@ -224,13 +224,15 @@ func printCurrentNotifyConfig(streams Streams) error {
 		statusIcon(cfg.Notify.ClaudeCode.Channels.System.Enabled),
 		statusIcon(cfg.Notify.ClaudeCode.Channels.WechatWork.Enabled),
 		statusIcon(cfg.Notify.ClaudeCode.Channels.DingTalk.Enabled),
-		statusIcon(cfg.Notify.ClaudeCode.Channels.Bark.Enabled))
+		statusIcon(cfg.Notify.ClaudeCode.Channels.Bark.Enabled),
+		statusIcon(cfg.Notify.ClaudeCode.Channels.Ntfy.Enabled))
 	fmt.Fprintf(streams.Stdout, i18n.T("view.row_format")+"\n", "Codex",
 		statusIcon(cfg.Notify.Codex.Channels.Feishu.Enabled),
 		statusIcon(cfg.Notify.Codex.Channels.System.Enabled),
 		statusIcon(cfg.Notify.Codex.Channels.WechatWork.Enabled),
 		statusIcon(cfg.Notify.Codex.Channels.DingTalk.Enabled),
-		statusIcon(cfg.Notify.Codex.Channels.Bark.Enabled))
+		statusIcon(cfg.Notify.Codex.Channels.Bark.Enabled),
+		statusIcon(cfg.Notify.Codex.Channels.Ntfy.Enabled))
 	fmt.Fprintln(streams.Stdout, i18n.T("view.separator"))
 
 	return nil

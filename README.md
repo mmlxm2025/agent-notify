@@ -16,7 +16,7 @@
 
 Agent Notify hooks into the lifecycle events of AI coding agents (Claude Code, Codex, etc.) and pushes them to your phone and desktop. Get notified the moment your agent needs permission, is waiting for input, finishes a task, or fails — so you never have to babysit a running agent.
 
-Supported delivery channels: **OS-native system notifications**, **Feishu/Lark**, **WeChat Work (企业微信)**, **DingTalk (钉钉)**, and **Bark (iOS)**.
+Supported delivery channels: **OS-native system notifications**, **Feishu/Lark**, **WeChat Work (企业微信)**, **DingTalk (钉钉)**, **Bark (iOS)**, and **ntfy**.
 
 ## Features
 
@@ -29,6 +29,7 @@ Supported delivery channels: **OS-native system notifications**, **Feishu/Lark**
 | <img src="assist/logo/qiyeweixin.png" width="24" align="absmiddle"> WeChat Work | Push notifications via a WeChat Work group bot webhook | Webhook |
 | <img src="assist/logo/dingding.png" width="24" align="absmiddle"> DingTalk | Push notifications via a DingTalk group bot webhook | Webhook |
 | <img src="assist/logo/bark.png" width="24" align="absmiddle"> Bark | Push to iOS devices via a Bark webhook URL | Webhook |
+| <img src="assist/logo/ntfy.png" width="24" align="absmiddle"> ntfy | Push via ntfy.sh or self-hosted ntfy server; | Topic |
 | <img src="assist/logo/slack.png" width="24" align="absmiddle"> Slack | Push via Slack Incoming Webhook | 🚧 Webhook |
 | <img src="assist/logo/discord.png" width="24" align="absmiddle"> Discord | Push via Discord channel webhook | 🚧 Webhook |
 | <img src="assist/logo/telegram.png" width="24" align="absmiddle"> Telegram | Push via Telegram Bot API | 🚧 Bot token |
@@ -94,6 +95,17 @@ Agent Notify's own config lives at `~/.agent-notify/config.yaml`. Agent integrat
 3. **Codex completion notifications**: in `~/.agent-notify/config.yaml`, keep Codex's `run_completed` event and enable `notify.codex.channels.bark`.
 
 The Bark URL is saved as local config; notifications are sent using Bark's POST JSON parameters `title` and `body`.
+
+### ntfy Setup
+
+[ntfy](https://ntfy.sh) (pronounced "notify") is a simple HTTP-based pub-sub notification service. It works on Android, iOS, web, and desktop, and supports self-hosting.
+
+1. **Get the topic URL**: subscribe to a topic on ntfy.sh (or your self-hosted ntfy server) and copy the topic URL, e.g. `https://ntfy.sh/mytopic`.
+   - Pick a topic name that's hard to guess — it's essentially your password.
+2. **Bind it**: run `npx agent-notify`, go to "Channel Config" → "Init Ntfy", and paste the topic URL.
+3. **Codex completion notifications**: in `~/.agent-notify/config.yaml`, keep Codex's `run_completed` event and enable `notify.codex.channels.ntfy`.
+
+Notifications are sent via HTTP POST with `Title` and `Tags` headers; the message body is sent as plain text.
 
 ## Workflow
 

@@ -56,6 +56,9 @@ func buildSenders(cfg config.Config, msg notify.Message) []notify.Sender {
 	if notifyCfg.Channels.Bark.Enabled && notifyCfg.Channels.Bark.WebhookURL != "" {
 		senders = append(senders, notify.NewBarkSender(notifyCfg.Channels.Bark.WebhookURL))
 	}
+	if notifyCfg.Channels.Ntfy.Enabled && notifyCfg.Channels.Ntfy.TopicURL != "" {
+		senders = append(senders, notify.NewNtfySender(notifyCfg.Channels.Ntfy.TopicURL))
+	}
 
 	return senders
 }

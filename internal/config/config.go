@@ -47,6 +47,7 @@ type ChannelsConfig struct {
 	WechatWork WechatWorkChannelConfig `yaml:"wechat_work"` // 企业微信通知配置
 	DingTalk   DingTalkChannelConfig   `yaml:"dingtalk"`    // 钉钉通知配置
 	Bark       BarkChannelConfig       `yaml:"bark"`        // Bark 通知配置
+	Ntfy       NtfyChannelConfig       `yaml:"ntfy"`        // Ntfy 通知配置
 }
 
 // ChannelConfig holds configuration for a single notification channel.
@@ -70,6 +71,12 @@ type DingTalkChannelConfig struct {
 type BarkChannelConfig struct {
 	Enabled    bool   `yaml:"enabled"`     // 是否启用 Bark 通知
 	WebhookURL string `yaml:"webhook_url"` // Bark 推送 URL
+}
+
+// NtfyChannelConfig holds configuration for ntfy.sh topic notifications.
+type NtfyChannelConfig struct {
+	Enabled  bool   `yaml:"enabled"`   // 是否启用 Ntfy 通知
+	TopicURL string `yaml:"topic_url"` // Ntfy topic URL, e.g. https://ntfy.sh/mytopic
 }
 
 // BehaviorConfig holds behavior configuration.
@@ -105,6 +112,7 @@ func Default() Config {
 					WechatWork: WechatWorkChannelConfig{Enabled: false, WebhookURL: ""},
 					DingTalk:   DingTalkChannelConfig{Enabled: false, WebhookURL: ""},
 					Bark:       BarkChannelConfig{Enabled: false, WebhookURL: ""},
+					Ntfy:       NtfyChannelConfig{Enabled: false, TopicURL: ""},
 				},
 			},
 			Codex: AgentNotifyConfig{
@@ -115,6 +123,7 @@ func Default() Config {
 					WechatWork: WechatWorkChannelConfig{Enabled: false, WebhookURL: ""},
 					DingTalk:   DingTalkChannelConfig{Enabled: false, WebhookURL: ""},
 					Bark:       BarkChannelConfig{Enabled: false, WebhookURL: ""},
+					Ntfy:       NtfyChannelConfig{Enabled: false, TopicURL: ""},
 				},
 			},
 		},

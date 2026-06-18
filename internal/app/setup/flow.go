@@ -19,6 +19,7 @@ const (
 	channelWXWork   = "wechat-work"
 	channelDingTalk = "dingtalk"
 	channelBark     = "bark"
+	channelNtfy     = "ntfy"
 	installScopeUsr = "user"
 	installScopePrj = "project"
 )
@@ -30,6 +31,7 @@ func channelOptions() []PromptOption {
 		{Label: i18n.T("channel.wechat"), Value: channelWXWork},
 		{Label: i18n.T("channel.dingtalk"), Value: channelDingTalk},
 		{Label: i18n.T("channel.bark"), Value: channelBark},
+		{Label: i18n.T("channel.ntfy"), Value: channelNtfy},
 	}
 }
 
@@ -39,10 +41,11 @@ type channelSelection struct {
 	WechatWork bool
 	DingTalk   bool
 	Bark       bool
+	Ntfy       bool
 }
 
 func (c channelSelection) hasAny() bool {
-	return c.System || c.Feishu || c.WechatWork || c.DingTalk || c.Bark
+	return c.System || c.Feishu || c.WechatWork || c.DingTalk || c.Bark || c.Ntfy
 }
 
 type configureAgentRequest struct {
@@ -116,6 +119,9 @@ func currentChannelValues(channels config.ChannelsConfig) []string {
 	if channels.Bark.Enabled {
 		values = append(values, channelBark)
 	}
+	if channels.Ntfy.Enabled {
+		values = append(values, channelNtfy)
+	}
 	return values
 }
 
@@ -126,6 +132,7 @@ func channelSelectionFromChoices(choices []string) channelSelection {
 		WechatWork: slices.Contains(choices, channelWXWork),
 		DingTalk:   slices.Contains(choices, channelDingTalk),
 		Bark:       slices.Contains(choices, channelBark),
+		Ntfy:       slices.Contains(choices, channelNtfy),
 	}
 }
 
@@ -229,6 +236,7 @@ func applyChannelSelection(channels config.ChannelsConfig, selection channelSele
 	next.WechatWork.Enabled = selection.WechatWork
 	next.DingTalk.Enabled = selection.DingTalk
 	next.Bark.Enabled = selection.Bark
+	next.Ntfy.Enabled = selection.Ntfy
 	return next
 }
 
@@ -268,6 +276,13 @@ func promptWebhookURLs(
 			return config.ChannelsConfig{}, err
 		}
 		next.Bark.WebhookURL = webhookURL
+	}
+	if selection.Ntfy {
+		topicURL, err := prompter.Input(i18n.T("prompt.ntfy_topic_url"), next.Ntfy.TopicURL)
+		if err != nil {
+			return config.ChannelsConfig{}, err
+		}
+		next.Ntfy.TopicURL = topicURL
 	}
 	return next, nil
 }
