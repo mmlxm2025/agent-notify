@@ -110,6 +110,7 @@ func runTestMenu(ctx context.Context, streams Streams, prompter Prompter) error 
 		{Label: i18n.T("test.dingtalk"), Value: "dingtalk"},
 		{Label: i18n.T("test.bark"), Value: "bark"},
 		{Label: i18n.T("test.ntfy"), Value: "ntfy"},
+		{Label: i18n.T("test.slack"), Value: "slack"},
 		{Label: i18n.T("test.back"), Value: "back"},
 	}, "system")
 	if err != nil {
@@ -129,6 +130,8 @@ func runTestMenu(ctx context.Context, streams Streams, prompter Prompter) error 
 		return runTestBark(ctx, streams)
 	case "ntfy":
 		return runTestNtfy(ctx, streams)
+	case "slack":
+		return runTestSlack(ctx, streams)
 	default:
 		return nil
 	}
@@ -142,6 +145,7 @@ func runChannelsMenu(ctx context.Context, streams Streams, prompter Prompter) er
 			{Label: i18n.T("channel.dingtalk"), Value: "dingtalk-init"},
 			{Label: i18n.T("channel.bark"), Value: "bark-init"},
 			{Label: i18n.T("channel.ntfy"), Value: "ntfy-init"},
+			{Label: i18n.T("channel.slack"), Value: "slack-init"},
 			{Label: i18n.T("channel.back"), Value: "back"},
 		}, "feishu-init")
 		if err != nil {
@@ -168,6 +172,10 @@ func runChannelsMenu(ctx context.Context, streams Streams, prompter Prompter) er
 			}
 		case "ntfy-init":
 			if err := runInitNtfy(streams, prompter); err != nil {
+				return err
+			}
+		case "slack-init":
+			if err := runInitSlack(streams, prompter); err != nil {
 				return err
 			}
 		case "back":
@@ -243,6 +251,8 @@ func runCleanConfig(streams Streams, prompter Prompter) error {
 	defaultCfg.Notify.ClaudeCode.Channels.Bark.WebhookURL = ""
 	defaultCfg.Notify.ClaudeCode.Channels.Ntfy.Enabled = false
 	defaultCfg.Notify.ClaudeCode.Channels.Ntfy.TopicURL = ""
+	defaultCfg.Notify.ClaudeCode.Channels.Slack.Enabled = false
+	defaultCfg.Notify.ClaudeCode.Channels.Slack.WebhookURL = ""
 	defaultCfg.Notify.ClaudeCode.Events = nil
 	// Clear Codex channel toggles
 	defaultCfg.Notify.Codex.Channels.Feishu.Enabled = false
@@ -255,6 +265,8 @@ func runCleanConfig(streams Streams, prompter Prompter) error {
 	defaultCfg.Notify.Codex.Channels.Bark.WebhookURL = ""
 	defaultCfg.Notify.Codex.Channels.Ntfy.Enabled = false
 	defaultCfg.Notify.Codex.Channels.Ntfy.TopicURL = ""
+	defaultCfg.Notify.Codex.Channels.Slack.Enabled = false
+	defaultCfg.Notify.Codex.Channels.Slack.WebhookURL = ""
 	defaultCfg.Notify.Codex.Events = nil
 	if err := config.Save(cfgPath, defaultCfg); err != nil {
 		return fmt.Errorf("%s: %w", i18n.T("clean.save_default_err"), err)

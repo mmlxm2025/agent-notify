@@ -79,12 +79,14 @@ type DiagnosticsResult struct {
 	ClaudeDingTalkEnabled   bool
 	ClaudeBarkEnabled       bool
 	ClaudeNtfyEnabled       bool
+	ClaudeSlackEnabled      bool
 	CodexFeishuEnabled      bool
 	CodexSystemEnabled      bool
 	CodexWechatWorkEnabled  bool
 	CodexDingTalkEnabled    bool
 	CodexBarkEnabled        bool
 	CodexNtfyEnabled        bool
+	CodexSlackEnabled       bool
 	ClaudeIntegrationStatus DiagnosticStatus
 	CodexIntegrationStatus  DiagnosticStatus
 }
@@ -128,12 +130,14 @@ func (s *Service) Run() (*DiagnosticsResult, error) {
 	result.ClaudeDingTalkEnabled = cfgLoadErr == nil && cfg.Notify.ClaudeCode.Channels.DingTalk.Enabled
 	result.ClaudeBarkEnabled = cfgLoadErr == nil && cfg.Notify.ClaudeCode.Channels.Bark.Enabled
 	result.ClaudeNtfyEnabled = cfgLoadErr == nil && cfg.Notify.ClaudeCode.Channels.Ntfy.Enabled
+	result.ClaudeSlackEnabled = cfgLoadErr == nil && cfg.Notify.ClaudeCode.Channels.Slack.Enabled
 	result.CodexFeishuEnabled = cfgLoadErr == nil && cfg.Notify.Codex.Channels.Feishu.Enabled
 	result.CodexSystemEnabled = cfgLoadErr == nil && cfg.Notify.Codex.Channels.System.Enabled
 	result.CodexWechatWorkEnabled = cfgLoadErr == nil && cfg.Notify.Codex.Channels.WechatWork.Enabled
 	result.CodexDingTalkEnabled = cfgLoadErr == nil && cfg.Notify.Codex.Channels.DingTalk.Enabled
 	result.CodexBarkEnabled = cfgLoadErr == nil && cfg.Notify.Codex.Channels.Bark.Enabled
 	result.CodexNtfyEnabled = cfgLoadErr == nil && cfg.Notify.Codex.Channels.Ntfy.Enabled
+	result.CodexSlackEnabled = cfgLoadErr == nil && cfg.Notify.Codex.Channels.Slack.Enabled
 
 	result.ClaudeIntegrationStatus = integrationStatus(result.ConfigExists, result.ClaudeInstalled, result.ClaudeHookInstalled)
 	result.CodexIntegrationStatus = integrationStatus(result.ConfigExists, result.CodexInstalled, result.CodexHookInstalled)
@@ -191,21 +195,23 @@ func (s *Service) Print(output OutputWriter, result *DiagnosticsResult) {
 	output.Writef(i18n.T("doctor.channel_sep") + "\n")
 	output.Writef(i18n.T("doctor.channel_header") + "\n")
 	output.Writef(i18n.T("doctor.channel_sep") + "\n")
-	output.Writef("| %-12s |  %s  |  %s  |    %s    |  %s  |  %s  |  %s  |\n", "Claude Code",
+	output.Writef("| %-12s |  %s  |  %s  |    %s    |  %s  |  %s  |  %s  |  %s  |\n", "Claude Code",
 		boolIcon(result.ClaudeFeishuEnabled),
 		boolIcon(result.ClaudeSystemEnabled),
 		boolIcon(result.ClaudeWechatWorkEnabled),
 		boolIcon(result.ClaudeDingTalkEnabled),
 		boolIcon(result.ClaudeBarkEnabled),
 		boolIcon(result.ClaudeNtfyEnabled),
+		boolIcon(result.ClaudeSlackEnabled),
 	)
-	output.Writef("| %-12s |  %s  |  %s  |    %s    |  %s  |  %s  |  %s  |\n", "Codex",
+	output.Writef("| %-12s |  %s  |  %s  |    %s    |  %s  |  %s  |  %s  |  %s  |\n", "Codex",
 		boolIcon(result.CodexFeishuEnabled),
 		boolIcon(result.CodexSystemEnabled),
 		boolIcon(result.CodexWechatWorkEnabled),
 		boolIcon(result.CodexDingTalkEnabled),
 		boolIcon(result.CodexBarkEnabled),
 		boolIcon(result.CodexNtfyEnabled),
+		boolIcon(result.CodexSlackEnabled),
 	)
 	output.Writef(i18n.T("doctor.channel_sep") + "\n")
 	output.Writef("\n")

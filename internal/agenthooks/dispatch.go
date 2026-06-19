@@ -59,6 +59,9 @@ func buildSenders(cfg config.Config, msg notify.Message) []notify.Sender {
 	if notifyCfg.Channels.Ntfy.Enabled && notifyCfg.Channels.Ntfy.TopicURL != "" {
 		senders = append(senders, notify.NewNtfySender(notifyCfg.Channels.Ntfy.TopicURL))
 	}
+	if notifyCfg.Channels.Slack.Enabled && notifyCfg.Channels.Slack.WebhookURL != "" {
+		senders = append(senders, notify.NewSlackSender(notifyCfg.Channels.Slack.WebhookURL))
+	}
 
 	return senders
 }

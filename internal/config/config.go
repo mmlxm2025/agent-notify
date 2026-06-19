@@ -48,6 +48,7 @@ type ChannelsConfig struct {
 	DingTalk   DingTalkChannelConfig   `yaml:"dingtalk"`    // 钉钉通知配置
 	Bark       BarkChannelConfig       `yaml:"bark"`        // Bark 通知配置
 	Ntfy       NtfyChannelConfig       `yaml:"ntfy"`        // Ntfy 通知配置
+	Slack      SlackChannelConfig      `yaml:"slack"`       // Slack 通知配置
 }
 
 // ChannelConfig holds configuration for a single notification channel.
@@ -77,6 +78,12 @@ type BarkChannelConfig struct {
 type NtfyChannelConfig struct {
 	Enabled  bool   `yaml:"enabled"`   // 是否启用 Ntfy 通知
 	TopicURL string `yaml:"topic_url"` // Ntfy topic URL, e.g. https://ntfy.sh/mytopic
+}
+
+// SlackChannelConfig holds configuration for Slack Incoming Webhook notifications.
+type SlackChannelConfig struct {
+	Enabled    bool   `yaml:"enabled"`     // 是否启用 Slack 通知
+	WebhookURL string `yaml:"webhook_url"` // Slack Incoming Webhook URL
 }
 
 // BehaviorConfig holds behavior configuration.
@@ -113,6 +120,7 @@ func Default() Config {
 					DingTalk:   DingTalkChannelConfig{Enabled: false, WebhookURL: ""},
 					Bark:       BarkChannelConfig{Enabled: false, WebhookURL: ""},
 					Ntfy:       NtfyChannelConfig{Enabled: false, TopicURL: ""},
+					Slack:      SlackChannelConfig{Enabled: false, WebhookURL: ""},
 				},
 			},
 			Codex: AgentNotifyConfig{
@@ -124,6 +132,7 @@ func Default() Config {
 					DingTalk:   DingTalkChannelConfig{Enabled: false, WebhookURL: ""},
 					Bark:       BarkChannelConfig{Enabled: false, WebhookURL: ""},
 					Ntfy:       NtfyChannelConfig{Enabled: false, TopicURL: ""},
+					Slack:      SlackChannelConfig{Enabled: false, WebhookURL: ""},
 				},
 			},
 		},

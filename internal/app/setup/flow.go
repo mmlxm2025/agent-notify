@@ -20,6 +20,7 @@ const (
 	channelDingTalk = "dingtalk"
 	channelBark     = "bark"
 	channelNtfy     = "ntfy"
+	channelSlack    = "slack"
 	installScopeUsr = "user"
 	installScopePrj = "project"
 )
@@ -32,6 +33,7 @@ func channelOptions() []PromptOption {
 		{Label: i18n.T("channel.dingtalk"), Value: channelDingTalk},
 		{Label: i18n.T("channel.bark"), Value: channelBark},
 		{Label: i18n.T("channel.ntfy"), Value: channelNtfy},
+		{Label: i18n.T("channel.slack"), Value: channelSlack},
 	}
 }
 
@@ -42,10 +44,11 @@ type channelSelection struct {
 	DingTalk   bool
 	Bark       bool
 	Ntfy       bool
+	Slack      bool
 }
 
 func (c channelSelection) hasAny() bool {
-	return c.System || c.Feishu || c.WechatWork || c.DingTalk || c.Bark || c.Ntfy
+	return c.System || c.Feishu || c.WechatWork || c.DingTalk || c.Bark || c.Ntfy || c.Slack
 }
 
 type configureAgentRequest struct {
@@ -122,6 +125,9 @@ func currentChannelValues(channels config.ChannelsConfig) []string {
 	if channels.Ntfy.Enabled {
 		values = append(values, channelNtfy)
 	}
+	if channels.Slack.Enabled {
+		values = append(values, channelSlack)
+	}
 	return values
 }
 
@@ -133,6 +139,7 @@ func channelSelectionFromChoices(choices []string) channelSelection {
 		DingTalk:   slices.Contains(choices, channelDingTalk),
 		Bark:       slices.Contains(choices, channelBark),
 		Ntfy:       slices.Contains(choices, channelNtfy),
+		Slack:      slices.Contains(choices, channelSlack),
 	}
 }
 
@@ -237,6 +244,7 @@ func applyChannelSelection(channels config.ChannelsConfig, selection channelSele
 	next.DingTalk.Enabled = selection.DingTalk
 	next.Bark.Enabled = selection.Bark
 	next.Ntfy.Enabled = selection.Ntfy
+	next.Slack.Enabled = selection.Slack
 	return next
 }
 
@@ -283,6 +291,13 @@ func promptWebhookURLs(
 			return config.ChannelsConfig{}, err
 		}
 		next.Ntfy.TopicURL = topicURL
+	}
+	if selection.Slack {
+		webhookURL, err := prompter.Input(i18n.T("prompt.slack_webhook"), next.Slack.WebhookURL)
+		if err != nil {
+			return config.ChannelsConfig{}, err
+		}
+		next.Slack.WebhookURL = webhookURL
 	}
 	return next, nil
 }

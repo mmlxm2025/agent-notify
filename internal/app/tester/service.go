@@ -31,6 +31,7 @@ type Service struct {
 	dingTalkSender   notify.Sender
 	barkSender       notify.Sender
 	ntfySender       notify.Sender
+	slackSender      notify.Sender
 }
 
 // NewService creates a new tester service.
@@ -83,6 +84,11 @@ func WithBarkSender(sender notify.Sender) Option {
 // WithNtfySender sets the Ntfy sender.
 func WithNtfySender(sender notify.Sender) Option {
 	return func(s *Service) { s.ntfySender = sender }
+}
+
+// WithSlackSender sets the Slack sender.
+func WithSlackSender(sender notify.Sender) Option {
+	return func(s *Service) { s.slackSender = sender }
 }
 
 // TestFeishuResult contains the result of a Feishu test.
@@ -176,6 +182,20 @@ func (s *Service) TestNtfy(ctx context.Context, topicURL string) (*TestNtfyResul
 	return &TestNtfyResult{Message: i18n.T("test.ntfy_sent")}, nil
 }
 
+// TestSlackResult contains the result of a Slack test.
+type TestSlackResult struct {
+	Message string
+}
+
+// TestSlack sends a test Slack notification using the provided webhook URL.
+func (s *Service) TestSlack(ctx context.Context, webhookURL string) (*TestSlackResult, error) {
+	msg := notify.Message{Event: "permission_required", Title: i18n.T("test.msg_title"), Body: i18n.T("test.msg_body_slack")}
+	if err := s.slackNotificationSender(webhookURL).Send(ctx, msg); err != nil {
+		return nil, err
+	}
+	return &TestSlackResult{Message: i18n.T("test.slack_sent")}, nil
+}
+
 func (s *Service) defaultConfigPath() (string, error) {
 	if s.configLoader != nil {
 		return s.configLoader.DefaultPath()
@@ -230,4 +250,11 @@ func (s *Service) ntfyNotificationSender(topicURL string) notify.Sender {
 		return s.ntfySender
 	}
 	return notify.NewNtfySender(topicURL)
+}
+
+func (s *Service) slackNotificationSender(webhookURL string) notify.Sender {
+	if s.slackSender != nil {
+		return s.slackSender
+	}
+	return notify.NewSlackSender(webhookURL)
 }
