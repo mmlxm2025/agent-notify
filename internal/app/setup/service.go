@@ -38,6 +38,7 @@ type OutputWriter interface {
 type Service struct {
 	claudeIntegration agentintegrations.Integration
 	codexIntegration  agentintegrations.Integration
+	zcodeIntegration  agentintegrations.Integration
 	feishuPreparer    FeishuPreparer
 	configLoader      ConfigLoader
 }
@@ -61,6 +62,7 @@ func NewService(opts ...Option) *Service {
 	s := &Service{
 		claudeIntegration: agentintegrations.NewClaudeIntegration(),
 		codexIntegration:  agentintegrations.NewCodexIntegration(),
+		zcodeIntegration:  agentintegrations.NewZcodeIntegration(),
 	}
 
 	for _, opt := range opts {
@@ -81,6 +83,11 @@ func WithClaudeIntegration(i agentintegrations.Integration) Option {
 // WithCodexIntegration sets the Codex integration.
 func WithCodexIntegration(i agentintegrations.Integration) Option {
 	return func(s *Service) { s.codexIntegration = i }
+}
+
+// WithZcodeIntegration sets the ZCode integration.
+func WithZcodeIntegration(i agentintegrations.Integration) Option {
+	return func(s *Service) { s.zcodeIntegration = i }
 }
 
 // WithFeishuPreparer sets the Feishu preparer.
@@ -108,6 +115,19 @@ func codexEventOptionsFn() []PromptOption {
 	return []PromptOption{
 		{Label: i18n.T("event.permission_required"), Value: "permission_required"},
 		{Label: i18n.T("event.run_completed"), Value: "run_completed"},
+	}
+}
+
+// zcodeEventOptionsFn returns event options for ZCode.
+// ZCode 支持 SessionStart / PermissionRequest / PostToolUseFailure / Stop，
+// 映射为 session_start / permission_required / run_failed / run_completed。
+// 注意 ZCode 没有 Notification 事件，因此没有 input_required。
+func zcodeEventOptionsFn() []PromptOption {
+	return []PromptOption{
+		{Label: i18n.T("event.session_start"), Value: "session_start"},
+		{Label: i18n.T("event.permission_required"), Value: "permission_required"},
+		{Label: i18n.T("event.run_completed"), Value: "run_completed"},
+		{Label: i18n.T("event.run_failed"), Value: "run_failed"},
 	}
 }
 
@@ -237,6 +257,17 @@ func (s *Service) disableAgentNotification(cfg config.Config, path, agent string
 		cfg.Notify.Codex.Channels.Slack.WebhookURL = ""
 		cfg.Notify.Codex.Events = nil
 		cfg.Agent.Codex.Enabled = false
+	case "zcode":
+		cfg.Notify.ZCode.Channels.Feishu.Enabled = false
+		cfg.Notify.ZCode.Channels.System.Enabled = false
+		cfg.Notify.ZCode.Channels.WechatWork.Enabled = false
+		cfg.Notify.ZCode.Channels.DingTalk.Enabled = false
+		cfg.Notify.ZCode.Channels.Bark.Enabled = false
+		cfg.Notify.ZCode.Channels.Ntfy.Enabled = false
+		cfg.Notify.ZCode.Channels.Slack.Enabled = false
+		cfg.Notify.ZCode.Channels.Slack.WebhookURL = ""
+		cfg.Notify.ZCode.Events = nil
+		cfg.Agent.ZCode.Enabled = false
 	}
 
 	if err := s.saveConfig(path, cfg); err != nil {
@@ -257,6 +288,8 @@ func agentName(agent string) string {
 		return "Claude Code"
 	case "codex":
 		return "Codex"
+	case "zcode":
+		return "ZCode"
 	default:
 		return agent
 	}

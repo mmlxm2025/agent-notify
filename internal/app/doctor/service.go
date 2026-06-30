@@ -24,6 +24,7 @@ type OutputWriter interface {
 type Service struct {
 	claudeIntegration agentintegrations.Integration
 	codexIntegration  agentintegrations.Integration
+	zcodeIntegration  agentintegrations.Integration
 }
 
 // NewService creates a new doctor service.
@@ -31,6 +32,7 @@ func NewService(opts ...Option) *Service {
 	s := &Service{
 		claudeIntegration: agentintegrations.NewClaudeIntegration(),
 		codexIntegration:  agentintegrations.NewCodexIntegration(),
+		zcodeIntegration:  agentintegrations.NewZcodeIntegration(),
 	}
 
 	for _, opt := range opts {
@@ -51,6 +53,11 @@ func WithClaudeIntegration(i agentintegrations.Integration) Option {
 // WithCodexIntegration sets the Codex integration.
 func WithCodexIntegration(i agentintegrations.Integration) Option {
 	return func(s *Service) { s.codexIntegration = i }
+}
+
+// WithZcodeIntegration sets the ZCode integration.
+func WithZcodeIntegration(i agentintegrations.Integration) Option {
+	return func(s *Service) { s.zcodeIntegration = i }
 }
 
 type DiagnosticStatus string
@@ -87,8 +94,18 @@ type DiagnosticsResult struct {
 	CodexBarkEnabled        bool
 	CodexNtfyEnabled        bool
 	CodexSlackEnabled       bool
+	ZcodeInstalled          bool
+	ZcodeHookInstalled      bool
+	ZcodeFeishuEnabled      bool
+	ZcodeSystemEnabled      bool
+	ZcodeWechatWorkEnabled  bool
+	ZcodeDingTalkEnabled    bool
+	ZcodeBarkEnabled        bool
+	ZcodeNtfyEnabled        bool
+	ZcodeSlackEnabled       bool
 	ClaudeIntegrationStatus DiagnosticStatus
 	CodexIntegrationStatus  DiagnosticStatus
+	ZcodeIntegrationStatus  DiagnosticStatus
 }
 
 // Run executes diagnostics and returns results.
@@ -98,6 +115,7 @@ func (s *Service) Run() (*DiagnosticsResult, error) {
 	// Detect agents
 	result.ClaudeInstalled = s.claudeIntegration.DetectInstalled()
 	result.CodexInstalled = s.codexIntegration.DetectInstalled()
+	result.ZcodeInstalled = s.zcodeIntegration != nil && s.zcodeIntegration.DetectInstalled()
 
 	// System notification detection
 	result.SystemNotifyAvailable, result.SystemNotifyName = detectSystemNotification()
@@ -123,6 +141,15 @@ func (s *Service) Run() (*DiagnosticsResult, error) {
 		result.CodexHookInstalled = err == nil && installed
 	}
 
+	// ZCode hooks settings
+	if s.zcodeIntegration != nil {
+		zcodeSettingsPath, _ := s.zcodeIntegration.SettingsPath("user")
+		if zcodeSettingsPath != "" {
+			installed, err := s.zcodeIntegration.IsHookInstalled(zcodeSettingsPath)
+			result.ZcodeHookInstalled = err == nil && installed
+		}
+	}
+
 	// Config values
 	result.ClaudeFeishuEnabled = cfgLoadErr == nil && cfg.Notify.ClaudeCode.Channels.Feishu.Enabled
 	result.ClaudeSystemEnabled = cfgLoadErr == nil && cfg.Notify.ClaudeCode.Channels.System.Enabled
@@ -138,9 +165,17 @@ func (s *Service) Run() (*DiagnosticsResult, error) {
 	result.CodexBarkEnabled = cfgLoadErr == nil && cfg.Notify.Codex.Channels.Bark.Enabled
 	result.CodexNtfyEnabled = cfgLoadErr == nil && cfg.Notify.Codex.Channels.Ntfy.Enabled
 	result.CodexSlackEnabled = cfgLoadErr == nil && cfg.Notify.Codex.Channels.Slack.Enabled
+	result.ZcodeFeishuEnabled = cfgLoadErr == nil && cfg.Notify.ZCode.Channels.Feishu.Enabled
+	result.ZcodeSystemEnabled = cfgLoadErr == nil && cfg.Notify.ZCode.Channels.System.Enabled
+	result.ZcodeWechatWorkEnabled = cfgLoadErr == nil && cfg.Notify.ZCode.Channels.WechatWork.Enabled
+	result.ZcodeDingTalkEnabled = cfgLoadErr == nil && cfg.Notify.ZCode.Channels.DingTalk.Enabled
+	result.ZcodeBarkEnabled = cfgLoadErr == nil && cfg.Notify.ZCode.Channels.Bark.Enabled
+	result.ZcodeNtfyEnabled = cfgLoadErr == nil && cfg.Notify.ZCode.Channels.Ntfy.Enabled
+	result.ZcodeSlackEnabled = cfgLoadErr == nil && cfg.Notify.ZCode.Channels.Slack.Enabled
 
 	result.ClaudeIntegrationStatus = integrationStatus(result.ConfigExists, result.ClaudeInstalled, result.ClaudeHookInstalled)
 	result.CodexIntegrationStatus = integrationStatus(result.ConfigExists, result.CodexInstalled, result.CodexHookInstalled)
+	result.ZcodeIntegrationStatus = integrationStatus(result.ConfigExists, result.ZcodeInstalled, result.ZcodeHookInstalled)
 
 	// Feishu CLI
 	_, feishuCLIConfigErr := feishucli.ParseConfig()
@@ -187,6 +222,13 @@ func (s *Service) Print(output OutputWriter, result *DiagnosticsResult) {
 	codexNotifyStatus := padRight(diagnosticStatusLabel(result.CodexIntegrationStatus), 14)
 	output.Writef(i18n.T("doctor.row_format")+"\n", "Codex", codexInstallStatus, codexNotifyStatus)
 
+	zcodeInstallStatus := padRight(i18n.T("status.not_installed"), 8)
+	if result.ZcodeInstalled {
+		zcodeInstallStatus = padRight(i18n.T("status.installed"), 8)
+	}
+	zcodeNotifyStatus := padRight(diagnosticStatusLabel(result.ZcodeIntegrationStatus), 14)
+	output.Writef(i18n.T("doctor.row_format")+"\n", "ZCode", zcodeInstallStatus, zcodeNotifyStatus)
+
 	output.Writef(i18n.T("doctor.agent_sep") + "\n")
 	output.Writef("\n")
 
@@ -212,6 +254,15 @@ func (s *Service) Print(output OutputWriter, result *DiagnosticsResult) {
 		boolIcon(result.CodexBarkEnabled),
 		boolIcon(result.CodexNtfyEnabled),
 		boolIcon(result.CodexSlackEnabled),
+	)
+	output.Writef("| %-12s |  %s  |  %s  |    %s    |  %s  |  %s  |  %s  |  %s  |\n", "ZCode",
+		boolIcon(result.ZcodeFeishuEnabled),
+		boolIcon(result.ZcodeSystemEnabled),
+		boolIcon(result.ZcodeWechatWorkEnabled),
+		boolIcon(result.ZcodeDingTalkEnabled),
+		boolIcon(result.ZcodeBarkEnabled),
+		boolIcon(result.ZcodeNtfyEnabled),
+		boolIcon(result.ZcodeSlackEnabled),
 	)
 	output.Writef(i18n.T("doctor.channel_sep") + "\n")
 	output.Writef("\n")

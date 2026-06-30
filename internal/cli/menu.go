@@ -221,10 +221,11 @@ func runCleanConfig(streams Streams, prompter Prompter) error {
 		return fmt.Errorf("%s: %w", i18n.T("clean.delete_failed"), err)
 	}
 
-	// 清理 Claude / Codex 中由本插件写入的 hook（保留用户挂载的其他 hook）
+	// 清理 Claude / Codex / ZCode 中由本插件写入的 hook（保留用户挂载的其他 hook）
 	for _, integ := range []agentintegrations.Integration{
 		agentintegrations.NewClaudeIntegration(),
 		agentintegrations.NewCodexIntegration(),
+		agentintegrations.NewZcodeIntegration(),
 	} {
 		settingsPath, err := integ.SettingsPath("user")
 		if err != nil {
@@ -268,6 +269,20 @@ func runCleanConfig(streams Streams, prompter Prompter) error {
 	defaultCfg.Notify.Codex.Channels.Slack.Enabled = false
 	defaultCfg.Notify.Codex.Channels.Slack.WebhookURL = ""
 	defaultCfg.Notify.Codex.Events = nil
+	// Clear ZCode channel toggles
+	defaultCfg.Notify.ZCode.Channels.Feishu.Enabled = false
+	defaultCfg.Notify.ZCode.Channels.System.Enabled = false
+	defaultCfg.Notify.ZCode.Channels.WechatWork.Enabled = false
+	defaultCfg.Notify.ZCode.Channels.WechatWork.WebhookURL = ""
+	defaultCfg.Notify.ZCode.Channels.DingTalk.Enabled = false
+	defaultCfg.Notify.ZCode.Channels.DingTalk.WebhookURL = ""
+	defaultCfg.Notify.ZCode.Channels.Bark.Enabled = false
+	defaultCfg.Notify.ZCode.Channels.Bark.WebhookURL = ""
+	defaultCfg.Notify.ZCode.Channels.Ntfy.Enabled = false
+	defaultCfg.Notify.ZCode.Channels.Ntfy.TopicURL = ""
+	defaultCfg.Notify.ZCode.Channels.Slack.Enabled = false
+	defaultCfg.Notify.ZCode.Channels.Slack.WebhookURL = ""
+	defaultCfg.Notify.ZCode.Events = nil
 	if err := config.Save(cfgPath, defaultCfg); err != nil {
 		return fmt.Errorf("%s: %w", i18n.T("clean.save_default_err"), err)
 	}

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-agent-notify is a notification tool for AI coding agents (Claude Code, OpenAI Codex). It hooks into agent lifecycle events (permission requests, input needed, task completed/failed) and sends push notifications through multiple channels: Feishu/Lark, WeChat Work, DingTalk, Bark, and OS-native system notifications.
+agent-notify is a notification tool for AI coding agents (Claude Code, OpenAI Codex, ZCode). It hooks into agent lifecycle events (permission requests, input needed, task completed/failed) and sends push notifications through multiple channels: Feishu/Lark, WeChat Work, DingTalk, Bark, and OS-native system notifications.
 
 ## Common Commands
 
@@ -42,7 +42,7 @@ Version is injected via ldflags at build time into `internal/cli.Version`.
 - `internal/config/` — YAML config at `~/.agent-notify/config.yaml`
 - `internal/notify/` — Sender implementations: feishu, wechatwork, dingtalk, bark, system (macOS/Linux/Windows)
 - `internal/state/` — Deduplication store (`state.json`) + append-only log
-- `internal/agentintegrations/` — `Integration` interface for Claude/Codex (detect, install/uninstall hooks)
+- `internal/agentintegrations/` — `Integration` interface for Claude/Codex/ZCode (detect, install/uninstall hooks)
 - `internal/app/` — High-level services: setup wizard, notification tester, doctor diagnostics
 - `npx/` — Node.js launcher that downloads/caches the Go binary from GitHub Releases
 
@@ -68,7 +68,9 @@ type Integration interface {
 
 ### Supported Events
 
-`permission_required`, `input_required`, `run_completed`, `run_failed` — Claude Code supports all four; Codex supports `permission_required` and `run_completed`.
+`session_start`, `permission_required`, `input_required`, `run_completed`, `run_failed` — Claude Code supports all four standard events; Codex supports `permission_required` and `run_completed`; ZCode supports `session_start`, `permission_required`, `run_completed`, and `run_failed` (no `input_required` — ZCode has no `Notification` event).
+
+ZCode integration notes: config lives at `~/.zcode/cli/config.json`, hooks are nested under `hooks.events.<Event>` (not `hooks.<Event>` like Claude Code) and require `hooks.enabled: true`. The ZCode hook schema is strict — an unrecognized event name silently invalidates the whole config. stdin payload uses both `hook_event_name` (snake_case) and `hookEventName` (camelCase); the parser accepts either.
 
 ### Configuration & State
 

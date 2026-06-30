@@ -45,6 +45,7 @@ var catalog = map[string]map[Lang]string{
 	"event.input_required":      {ZhCN: "等待输入 (input_required)", EnUS: "Input Required"},
 	"event.run_completed":       {ZhCN: "任务完成 (run_completed)", EnUS: "Task Completed"},
 	"event.run_failed":          {ZhCN: "任务失败 (run_failed)", EnUS: "Task Failed"},
+	"event.session_start":       {ZhCN: "会话开始 (session_start)", EnUS: "Session Start"},
 
 	// ── Webhook URL prompts ────────────────────────────────────
 	"prompt.wechat_webhook":   {ZhCN: "企业微信群机器人 Webhook URL", EnUS: "WeChat Work Bot Webhook URL"},
@@ -164,4 +165,8 @@ var catalog = map[string]map[Lang]string{
 	"setup.codex_install_err":  {ZhCN: "安装 codex hooks 失败", EnUS: "failed to install Codex hooks"},
 	"setup.claude_hooks_done":  {ZhCN: "claude hooks 安装: %s\n", EnUS: "Claude hooks installed: %s\n"},
 	"setup.codex_hooks_done":   {ZhCN: "codex hooks 安装: %s\n", EnUS: "Codex hooks installed: %s\n"},
+	"setup.zcode_tip":          {ZhCN: "提示: 请重启 ZCode 使 hooks 配置生效\n", EnUS: "Tip: Restart ZCode for the hooks configuration to take effect\n"},
+	"setup.zcode_hooks_err":    {ZhCN: "获取 zcode config 路径失败", EnUS: "failed to get ZCode config path"},
+	"setup.zcode_install_err":  {ZhCN: "安装 zcode hooks 失败", EnUS: "failed to install ZCode hooks"},
+	"setup.zcode_hooks_done":   {ZhCN: "zcode hooks 安装: %s\n", EnUS: "ZCode hooks installed: %s\n"},
 }
