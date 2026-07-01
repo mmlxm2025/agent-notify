@@ -34,10 +34,12 @@ func NewRootCmd(ctx context.Context, streams Streams) *cobra.Command {
 	root.AddCommand(
 		newInitCmd(streams),
 		newClaudeCmd(streams),
+		newZcodeCmd(streams),
 		newTestCmd(ctx, streams),
 		newDoctorCmd(streams),
 		newHandleClaudeHookCmd(ctx, streams),
 		newHandleCodexHookCmd(ctx, streams),
+		newHandleZcodeHookCmd(ctx, streams),
 	)
 
 	return root

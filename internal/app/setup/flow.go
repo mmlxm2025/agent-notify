@@ -14,6 +14,7 @@ import (
 const (
 	agentClaude     = "claude"
 	agentCodex      = "codex"
+	agentZcode      = "zcode"
 	channelSystem   = "system"
 	channelFeishu   = "feishu"
 	channelWXWork   = "wechat-work"
@@ -70,7 +71,7 @@ type configuredAgent struct {
 func (s *Service) selectAgent(prompter Prompter, cfg config.Config) (string, error) {
 	agentOptions, defaultAgent := s.agentOptions(cfg)
 	if len(agentOptions) == 0 {
-		return "", errors.New("Claude Code or Codex not detected; please install one first")
+		return "", errors.New("Claude Code, Codex or ZCode not detected; please install one first")
 	}
 	if defaultAgent == "" {
 		defaultAgent = agentOptions[0].Value
@@ -91,6 +92,12 @@ func (s *Service) agentOptions(cfg config.Config) ([]PromptOption, string) {
 		options = append(options, PromptOption{Label: "Codex", Value: agentCodex})
 		if cfg.Agent.Codex.Enabled && defaultAgent == "" {
 			defaultAgent = agentCodex
+		}
+	}
+	if s.zcodeIntegration != nil && s.zcodeIntegration.DetectInstalled() {
+		options = append(options, PromptOption{Label: "ZCode", Value: agentZcode})
+		if cfg.Agent.ZCode.Enabled && defaultAgent == "" {
+			defaultAgent = agentZcode
 		}
 	}
 	return options, defaultAgent
@@ -148,24 +155,36 @@ func promptEvents(prompter Prompter, agent string, currentEvents []string) ([]st
 }
 
 func eventOptionsForAgent(agent string) []PromptOption {
-	if agent == agentClaude {
+	switch agent {
+	case agentClaude:
 		return claudeEventOptionsFn()
+	case agentZcode:
+		return zcodeEventOptionsFn()
+	default:
+		return codexEventOptionsFn()
 	}
-	return codexEventOptionsFn()
 }
 
 func channelsForAgent(cfg config.Config, agent string) config.ChannelsConfig {
-	if agent == agentClaude {
+	switch agent {
+	case agentClaude:
 		return cfg.Notify.ClaudeCode.Channels
+	case agentZcode:
+		return cfg.Notify.ZCode.Channels
+	default:
+		return cfg.Notify.Codex.Channels
 	}
-	return cfg.Notify.Codex.Channels
 }
 
 func eventsForAgent(cfg config.Config, agent string) []string {
-	if agent == agentClaude {
+	switch agent {
+	case agentClaude:
 		return cfg.Notify.ClaudeCode.Events
+	case agentZcode:
+		return cfg.Notify.ZCode.Events
+	default:
+		return cfg.Notify.Codex.Events
 	}
-	return cfg.Notify.Codex.Events
 }
 
 func (s *Service) configureAgent(req configureAgentRequest) (configuredAgent, error) {
@@ -174,6 +193,8 @@ func (s *Service) configureAgent(req configureAgentRequest) (configuredAgent, er
 		return s.configureClaude(req)
 	case agentCodex:
 		return s.configureCodex(req)
+	case agentZcode:
+		return s.configureZcode(req)
 	default:
 		return configuredAgent{}, fmt.Errorf("unsupported agent: %s", req.agent)
 	}
@@ -233,6 +254,37 @@ func (s *Service) configureCodex(req configureAgentRequest) (configuredAgent, er
 	req.output.Writef(i18n.T("setup.codex_tip"))
 	next.Agent.Codex.InstallScope = agentScope
 	next.Agent.Codex.Enabled = true
+	return configuredAgent{cfg: next, settingsPath: settingsPath}, nil
+}
+
+// configureZcode 配置 ZCode 的通知渠道、事件，并把 hook 写入
+// ~/.zcode/cli/config.json（user scope）或 .zcode/cli/config.json（project scope）。
+func (s *Service) configureZcode(req configureAgentRequest) (configuredAgent, error) {
+	next := req.cfg
+	next.Notify.ZCode.Channels = applyChannelSelection(next.Notify.ZCode.Channels, req.channels)
+	next.Notify.ZCode.Events = dedupeStrings(req.events)
+	if err := s.prepareSelectedChannels(req.ctx, req.channels); err != nil {
+		return configuredAgent{}, err
+	}
+	channels, err := promptWebhookURLs(req.prompter, next.Notify.ZCode.Channels, req.channels)
+	if err != nil {
+		return configuredAgent{}, err
+	}
+	next.Notify.ZCode.Channels = channels
+
+	agentScope := normalizedInstallScope(next.Agent.ZCode.InstallScope)
+	settingsPath, err := s.zcodeIntegration.SettingsPath(agentScope)
+	if err != nil {
+		return configuredAgent{}, fmt.Errorf("%s: %w", i18n.T("setup.zcode_hooks_err"), err)
+	}
+	resolvedBinary := common.ResolveBinaryPath(req.binaryPath)
+	if err := s.zcodeIntegration.Install(settingsPath, resolvedBinary); err != nil {
+		return configuredAgent{}, fmt.Errorf("%s: %w", i18n.T("setup.zcode_install_err"), err)
+	}
+	req.output.Writef(i18n.T("setup.zcode_hooks_done"), settingsPath)
+	req.output.Writef(i18n.T("setup.zcode_tip"))
+	next.Agent.ZCode.InstallScope = agentScope
+	next.Agent.ZCode.Enabled = true
 	return configuredAgent{cfg: next, settingsPath: settingsPath}, nil
 }
 

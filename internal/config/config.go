@@ -20,6 +20,7 @@ type Config struct {
 type AgentConfig struct {
 	ClaudeCode AgentTargetConfig `yaml:"claude_code"` // Claude Code 配置
 	Codex      AgentTargetConfig `yaml:"codex"`       // Codex 配置
+	ZCode      AgentTargetConfig `yaml:"zcode"`       // ZCode 配置
 }
 
 // AgentTargetConfig holds configuration for a specific agent.
@@ -32,6 +33,7 @@ type AgentTargetConfig struct {
 type NotifyConfig struct {
 	ClaudeCode AgentNotifyConfig `yaml:"claude_code"` // Claude Code 通知配置
 	Codex      AgentNotifyConfig `yaml:"codex"`       // Codex 通知配置
+	ZCode      AgentNotifyConfig `yaml:"zcode"`       // ZCode 通知配置
 }
 
 // AgentNotifyConfig holds notification configuration for a single agent.
@@ -97,6 +99,9 @@ func Default() Config {
 	allEvents := []string{"permission_required", "input_required", "run_completed", "run_failed"}
 	// Codex hooks 当前可靠支持的两个事件
 	codexEvents := []string{"permission_required", "run_completed"}
+	// ZCode hooks 支持的事件：与 Claude Code 基本一致，但没有 input_required
+	// （ZCode 没有 Notification 事件），并新增 session_start。
+	zcodeEvents := []string{"session_start", "permission_required", "run_completed", "run_failed"}
 
 	return Config{
 		Version: 1,
@@ -106,6 +111,10 @@ func Default() Config {
 				InstallScope: "user",
 			},
 			Codex: AgentTargetConfig{
+				Enabled:      false,
+				InstallScope: "user",
+			},
+			ZCode: AgentTargetConfig{
 				Enabled:      false,
 				InstallScope: "user",
 			},
@@ -127,6 +136,18 @@ func Default() Config {
 				Events: append([]string(nil), codexEvents...),
 				Channels: ChannelsConfig{
 					System:     ChannelConfig{Enabled: false},
+					Feishu:     ChannelConfig{Enabled: false},
+					WechatWork: WechatWorkChannelConfig{Enabled: false, WebhookURL: ""},
+					DingTalk:   DingTalkChannelConfig{Enabled: false, WebhookURL: ""},
+					Bark:       BarkChannelConfig{Enabled: false, WebhookURL: ""},
+					Ntfy:       NtfyChannelConfig{Enabled: false, TopicURL: ""},
+					Slack:      SlackChannelConfig{Enabled: false, WebhookURL: ""},
+				},
+			},
+			ZCode: AgentNotifyConfig{
+				Events: append([]string(nil), zcodeEvents...),
+				Channels: ChannelsConfig{
+					System:     ChannelConfig{Enabled: true},
 					Feishu:     ChannelConfig{Enabled: false},
 					WechatWork: WechatWorkChannelConfig{Enabled: false, WebhookURL: ""},
 					DingTalk:   DingTalkChannelConfig{Enabled: false, WebhookURL: ""},
@@ -192,6 +213,9 @@ func Load(path string) (Config, error) {
 	}
 	if cfg.Agent.Codex.InstallScope == "" {
 		cfg.Agent.Codex.InstallScope = "user"
+	}
+	if cfg.Agent.ZCode.InstallScope == "" {
+		cfg.Agent.ZCode.InstallScope = "user"
 	}
 	if cfg.Behavior.DedupeSeconds == 0 {
 		cfg.Behavior.DedupeSeconds = 60

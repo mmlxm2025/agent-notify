@@ -35,6 +35,8 @@ func buildSenders(cfg config.Config, msg notify.Message) []notify.Sender {
 	notifyCfg := cfg.Notify.ClaudeCode
 	if msg.Agent == "codex" {
 		notifyCfg = cfg.Notify.Codex
+	} else if msg.Agent == "zcode" {
+		notifyCfg = cfg.Notify.ZCode
 	}
 
 	if !contains(notifyCfg.Events, msg.Event) {

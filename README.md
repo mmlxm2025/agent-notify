@@ -14,7 +14,7 @@
 
 ## Overview
 
-Agent Notify hooks into the lifecycle events of AI coding agents (Claude Code, Codex, etc.) and pushes them to your phone and desktop. Get notified the moment your agent needs permission, is waiting for input, finishes a task, or fails — so you never have to babysit a running agent.
+Agent Notify hooks into the lifecycle events of AI coding agents (Claude Code, Codex, ZCode, etc.) and pushes them to your phone and desktop. Get notified the moment your agent needs permission, is waiting for input, finishes a task, or fails — so you never have to babysit a running agent.
 
 Supported delivery channels: **OS-native system notifications**, **Feishu/Lark**, **WeChat Work (企业微信)**, **DingTalk (钉钉)**, **Bark (iOS)**, and **ntfy**.
 
@@ -36,17 +36,19 @@ Supported delivery channels: **OS-native system notifications**, **Feishu/Lark**
 
 ### Supported Events
 
-| Event | Description | Claude Code | Codex |
-|------|------|:---:|:---:|
-| `permission_required` | Agent needs authorization (e.g. to run a command) | ✅ | ✅ |
-| `input_required` | Agent is waiting for user input | ✅ | — |
-| `run_completed` | Task finished | ✅ | ✅ |
-| `run_failed` | Task failed | ✅ | — |
+| Event | Description | Claude Code | Codex | ZCode |
+|------|------|:---:|:---:|:---:|
+| `session_start` | A new agent session has started | — | — | ✅ |
+| `permission_required` | Agent needs authorization (e.g. to run a command) | ✅ | ✅ | ✅ |
+| `input_required` | Agent is waiting for user input | ✅ | — | — |
+| `run_completed` | Task finished | ✅ | ✅ | ✅ |
+| `run_failed` | Task failed | ✅ | — | ✅ |
 
 Notes:
 
 - Claude Code subscribes to all four events via hooks in `~/.claude/settings.json` (`PermissionRequest`, `Notification`, `Stop`, `PostToolUseFailure`).
 - Codex subscribes to `PermissionRequest` and `Stop` via `~/.codex/hooks.json`, mapped to `permission_required` and `run_completed` respectively. `input_required` and `run_failed` have no corresponding Codex hook yet, so they are not supported.
+- ZCode subscribes to `SessionStart`, `PermissionRequest`, `PostToolUseFailure`, and `Stop` via `~/.zcode/cli/config.json`, mapped to `session_start`, `permission_required`, `run_failed`, and `run_completed`. ZCode has no `Notification` event (so no `input_required`), and its hook schema is strict — an unknown event name will cause the whole hooks config to be silently dropped.
 
 ### Supported Platforms
 
@@ -79,6 +81,7 @@ Agent Notify's own config lives at `~/.agent-notify/config.yaml`. Agent integrat
 
 - Claude Code: `~/.claude/settings.json` (writes hooks → command `agent-notify handle-claude-hook`)
 - Codex: `~/.codex/hooks.json` (writes hooks → command `agent-notify handle-codex-hook`; run `/hooks` inside Codex to complete trust)
+- ZCode: `~/.zcode/cli/config.json` (writes `hooks.events.<Event>` + `hooks.enabled` → command `agent-notify handle-zcode-hook`; restart ZCode for the config to take effect)
 
 ### WeChat Work Bot Binding Tip
 

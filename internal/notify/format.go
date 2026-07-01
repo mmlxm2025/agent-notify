@@ -6,6 +6,8 @@ func FormatTitle(agent, event string) string {
 
 func DefaultBody(event string) string {
 	switch event {
+	case "session_start":
+		return "新的 Agent 会话已开始"
 	case "run_completed":
 		return "任务已完成，请查看结果"
 	default:
@@ -19,6 +21,8 @@ func appDisplayName(agent string) string {
 		return "Claude Code"
 	case "codex":
 		return "Codex"
+	case "zcode":
+		return "ZCode"
 	default:
 		return agent
 	}
@@ -26,6 +30,8 @@ func appDisplayName(agent string) string {
 
 func eventDisplayName(event string) string {
 	switch event {
+	case "session_start":
+		return "会话开始"
 	case "permission_required":
 		return "等待授权"
 	case "input_required":
