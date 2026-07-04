@@ -98,9 +98,12 @@ func (s *MacOSSender) tryTerminalNotifier(ctx context.Context, msg Message) bool
 		"-group", fmt.Sprintf("com.agent-notify.%s", msg.Agent),
 	}
 
-	// 点击通知时激活触发事件的宿主应用（终端 / IDE）
+	// 点击通知时激活触发事件的宿主应用（终端 / IDE）。
+	// 使用 LaunchServices 的 open -b，比 terminal-notifier 内置 -activate 更稳定。
 	if s.clickToFocus && msg.SourceApp.BundleID != "" {
-		args = append(args, "-activate", msg.SourceApp.BundleID)
+		if cmd := openBundleCommand(msg.SourceApp.BundleID); cmd != "" {
+			args = append(args, "-execute", cmd)
+		}
 	}
 
 	// 图标按 agent 选择，存在才追加
@@ -110,6 +113,35 @@ func (s *MacOSSender) tryTerminalNotifier(ctx context.Context, msg Message) bool
 
 	// terminal-notifier returns 0 on success, non-zero on failure
 	return s.run(ctx, exe, args...) == nil
+}
+
+func openBundleCommand(bundleID string) string {
+	if !isSafeBundleID(bundleID) {
+		return ""
+	}
+	return "open -b " + bundleID
+}
+
+func isSafeBundleID(bundleID string) bool {
+	if bundleID == "" {
+		return false
+	}
+	for _, r := range bundleID {
+		if r >= 'a' && r <= 'z' {
+			continue
+		}
+		if r >= 'A' && r <= 'Z' {
+			continue
+		}
+		if r >= '0' && r <= '9' {
+			continue
+		}
+		if r == '.' || r == '-' {
+			continue
+		}
+		return false
+	}
+	return true
 }
 
 // formatBody formats the notification body. 时间戳已移至 subtitle，

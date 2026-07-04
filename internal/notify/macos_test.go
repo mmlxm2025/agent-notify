@@ -65,7 +65,7 @@ func TestMacOSSenderSendUsesTerminalNotifier(t *testing.T) {
 	}
 }
 
-func TestMacOSSenderTerminalNotifierActivate(t *testing.T) {
+func TestMacOSSenderTerminalNotifierExecutesOpenBundle(t *testing.T) {
 	newSenderArgs := func(msg Message, clickToFocus bool) []string {
 		var gotArgs []string
 		sender := NewMacOSSenderWithResolver(func(_ context.Context, name string, args ...string) error {
@@ -80,35 +80,44 @@ func TestMacOSSenderTerminalNotifierActivate(t *testing.T) {
 		return gotArgs
 	}
 
-	hasActivate := func(args []string, bundleID string) bool {
+	hasExecute := func(args []string, command string) bool {
 		for i, a := range args {
-			if a == "-activate" && i+1 < len(args) && args[i+1] == bundleID {
+			if a == "-execute" && i+1 < len(args) && args[i+1] == command {
 				return true
 			}
 		}
 		return false
 	}
 
-	// 有 BundleID + clickToFocus 开启 → 含 -activate
+	// 有 BundleID + clickToFocus 开启 → 含 -execute open -b
 	args := newSenderArgs(Message{Title: "Title", Body: "Body", SourceApp: SourceApp{BundleID: "com.googlecode.iterm2"}}, true)
-	if !hasActivate(args, "com.googlecode.iterm2") {
-		t.Fatalf("args = %#v, want -activate com.googlecode.iterm2", args)
+	if !hasExecute(args, "open -b com.googlecode.iterm2") {
+		t.Fatalf("args = %#v, want -execute open -b com.googlecode.iterm2", args)
 	}
 
-	// clickToFocus 关闭 → 不含 -activate
+	// clickToFocus 关闭 → 不含 -execute
 	args = newSenderArgs(Message{Title: "Title", Body: "Body", SourceApp: SourceApp{BundleID: "com.googlecode.iterm2"}}, false)
 	for _, a := range args {
-		if a == "-activate" {
-			t.Fatalf("args = %#v, unexpected -activate when clickToFocus disabled", args)
+		if a == "-execute" {
+			t.Fatalf("args = %#v, unexpected -execute when clickToFocus disabled", args)
 		}
 	}
 
-	// 无 BundleID → 不含 -activate
+	// 无 BundleID → 不含 -execute
 	args = newSenderArgs(Message{Title: "Title", Body: "Body"}, true)
 	for _, a := range args {
-		if a == "-activate" {
-			t.Fatalf("args = %#v, unexpected -activate without SourceApp", args)
+		if a == "-execute" {
+			t.Fatalf("args = %#v, unexpected -execute without SourceApp", args)
 		}
+	}
+}
+
+func TestOpenBundleCommandRejectsUnsafeBundleID(t *testing.T) {
+	if got := openBundleCommand("com.microsoft.VSCode"); got != "open -b com.microsoft.VSCode" {
+		t.Fatalf("openBundleCommand() = %q", got)
+	}
+	if got := openBundleCommand("com.example.app; touch /tmp/bad"); got != "" {
+		t.Fatalf("openBundleCommand() = %q, want empty for unsafe bundle id", got)
 	}
 }
 

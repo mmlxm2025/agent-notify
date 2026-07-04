@@ -3,6 +3,7 @@
 // （release 打包时已打进 darwin 包），install.js 解压 tar.gz 时提取到 INSTALL_DIR。
 // 本模块负责 bundle 就绪后的 quarantine 清除与 ad-hoc 签名。
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const constants = require('./constants');
@@ -38,7 +39,23 @@ function adHocSign(bundlePath) {
   try {
     execFileSync('codesign', ['-s', '-', '--force', '--deep', bundlePath], { stdio: 'ignore' });
   } catch {
-    // codesign 不可用或签名失败时忽略，不影响主流程
+    signViaTemporaryCopy(bundlePath);
+  }
+}
+
+function signViaTemporaryCopy(bundlePath) {
+  const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-notify-sign-'));
+  const tmpBundle = path.join(tmpRoot, NOTIFIER_BUNDLE);
+
+  try {
+    fs.cpSync(bundlePath, tmpBundle, { recursive: true });
+    execFileSync('codesign', ['-s', '-', '--force', '--deep', tmpBundle], { stdio: 'ignore' });
+    fs.rmSync(bundlePath, { recursive: true, force: true });
+    fs.cpSync(tmpBundle, bundlePath, { recursive: true });
+  } catch {
+    // codesign 不可用或替换失败时忽略，不影响主流程
+  } finally {
+    fs.rmSync(tmpRoot, { recursive: true, force: true });
   }
 }
 
