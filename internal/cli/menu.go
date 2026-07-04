@@ -107,6 +107,7 @@ func runTestMenu(ctx context.Context, streams Streams, prompter Prompter) error 
 		{Label: i18n.T("test.system"), Value: "system"},
 		{Label: i18n.T("test.feishu"), Value: "feishu"},
 		{Label: i18n.T("test.wechat"), Value: "wechat-work"},
+		{Label: i18n.T("test.wechatcompat"), Value: "wechat-compat"},
 		{Label: i18n.T("test.dingtalk"), Value: "dingtalk"},
 		{Label: i18n.T("test.bark"), Value: "bark"},
 		{Label: i18n.T("test.ntfy"), Value: "ntfy"},
@@ -124,6 +125,8 @@ func runTestMenu(ctx context.Context, streams Streams, prompter Prompter) error 
 		return runTestSystem(ctx, streams)
 	case "wechat-work":
 		return runTestWechatWork(ctx, streams)
+	case "wechat-compat":
+		return runTestWechatCompat(ctx, streams)
 	case "dingtalk":
 		return runTestDingTalk(ctx, streams)
 	case "bark":
@@ -142,6 +145,7 @@ func runChannelsMenu(ctx context.Context, streams Streams, prompter Prompter) er
 		choice, err := prompter.Select(i18n.T("channel.title"), []PromptOption{
 			{Label: i18n.T("channel.feishu"), Value: "feishu-init"},
 			{Label: i18n.T("channel.wechat"), Value: "wechatwork-init"},
+			{Label: i18n.T("channel.wechatcompat"), Value: "wechatcompat-init"},
 			{Label: i18n.T("channel.dingtalk"), Value: "dingtalk-init"},
 			{Label: i18n.T("channel.bark"), Value: "bark-init"},
 			{Label: i18n.T("channel.ntfy"), Value: "ntfy-init"},
@@ -160,6 +164,10 @@ func runChannelsMenu(ctx context.Context, streams Streams, prompter Prompter) er
 			fmt.Fprintln(streams.Stdout, i18n.T("msg.feishu_cli_done"))
 		case "wechatwork-init":
 			if err := runInitWechatWork(streams, prompter); err != nil {
+				return err
+			}
+		case "wechatcompat-init":
+			if err := runInitWechatCompat(streams, prompter); err != nil {
 				return err
 			}
 		case "dingtalk-init":
@@ -246,6 +254,8 @@ func runCleanConfig(streams Streams, prompter Prompter) error {
 	defaultCfg.Notify.ClaudeCode.Channels.System.Enabled = false
 	defaultCfg.Notify.ClaudeCode.Channels.WechatWork.Enabled = false
 	defaultCfg.Notify.ClaudeCode.Channels.WechatWork.WebhookURL = ""
+	defaultCfg.Notify.ClaudeCode.Channels.WechatCompat.Enabled = false
+	defaultCfg.Notify.ClaudeCode.Channels.WechatCompat.WebhookURL = ""
 	defaultCfg.Notify.ClaudeCode.Channels.DingTalk.Enabled = false
 	defaultCfg.Notify.ClaudeCode.Channels.DingTalk.WebhookURL = ""
 	defaultCfg.Notify.ClaudeCode.Channels.Bark.Enabled = false
@@ -260,6 +270,8 @@ func runCleanConfig(streams Streams, prompter Prompter) error {
 	defaultCfg.Notify.Codex.Channels.System.Enabled = false
 	defaultCfg.Notify.Codex.Channels.WechatWork.Enabled = false
 	defaultCfg.Notify.Codex.Channels.WechatWork.WebhookURL = ""
+	defaultCfg.Notify.Codex.Channels.WechatCompat.Enabled = false
+	defaultCfg.Notify.Codex.Channels.WechatCompat.WebhookURL = ""
 	defaultCfg.Notify.Codex.Channels.DingTalk.Enabled = false
 	defaultCfg.Notify.Codex.Channels.DingTalk.WebhookURL = ""
 	defaultCfg.Notify.Codex.Channels.Bark.Enabled = false
@@ -274,6 +286,8 @@ func runCleanConfig(streams Streams, prompter Prompter) error {
 	defaultCfg.Notify.ZCode.Channels.System.Enabled = false
 	defaultCfg.Notify.ZCode.Channels.WechatWork.Enabled = false
 	defaultCfg.Notify.ZCode.Channels.WechatWork.WebhookURL = ""
+	defaultCfg.Notify.ZCode.Channels.WechatCompat.Enabled = false
+	defaultCfg.Notify.ZCode.Channels.WechatCompat.WebhookURL = ""
 	defaultCfg.Notify.ZCode.Channels.DingTalk.Enabled = false
 	defaultCfg.Notify.ZCode.Channels.DingTalk.WebhookURL = ""
 	defaultCfg.Notify.ZCode.Channels.Bark.Enabled = false

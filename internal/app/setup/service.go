@@ -239,6 +239,7 @@ func (s *Service) disableAgentNotification(cfg config.Config, path, agent string
 		cfg.Notify.ClaudeCode.Channels.Feishu.Enabled = false
 		cfg.Notify.ClaudeCode.Channels.System.Enabled = false
 		cfg.Notify.ClaudeCode.Channels.WechatWork.Enabled = false
+		cfg.Notify.ClaudeCode.Channels.WechatCompat.Enabled = false
 		cfg.Notify.ClaudeCode.Channels.DingTalk.Enabled = false
 		cfg.Notify.ClaudeCode.Channels.Bark.Enabled = false
 		cfg.Notify.ClaudeCode.Channels.Ntfy.Enabled = false
@@ -250,6 +251,7 @@ func (s *Service) disableAgentNotification(cfg config.Config, path, agent string
 		cfg.Notify.Codex.Channels.Feishu.Enabled = false
 		cfg.Notify.Codex.Channels.System.Enabled = false
 		cfg.Notify.Codex.Channels.WechatWork.Enabled = false
+		cfg.Notify.Codex.Channels.WechatCompat.Enabled = false
 		cfg.Notify.Codex.Channels.DingTalk.Enabled = false
 		cfg.Notify.Codex.Channels.Bark.Enabled = false
 		cfg.Notify.Codex.Channels.Ntfy.Enabled = false
@@ -261,6 +263,7 @@ func (s *Service) disableAgentNotification(cfg config.Config, path, agent string
 		cfg.Notify.ZCode.Channels.Feishu.Enabled = false
 		cfg.Notify.ZCode.Channels.System.Enabled = false
 		cfg.Notify.ZCode.Channels.WechatWork.Enabled = false
+		cfg.Notify.ZCode.Channels.WechatCompat.Enabled = false
 		cfg.Notify.ZCode.Channels.DingTalk.Enabled = false
 		cfg.Notify.ZCode.Channels.Bark.Enabled = false
 		cfg.Notify.ZCode.Channels.Ntfy.Enabled = false

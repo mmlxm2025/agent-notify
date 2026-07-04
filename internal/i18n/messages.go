@@ -16,6 +16,7 @@ var catalog = map[string]map[Lang]string{
 	"test.system":   {ZhCN: "系统通知", EnUS: "System"},
 	"test.feishu":   {ZhCN: "飞书", EnUS: "Feishu"},
 	"test.wechat":   {ZhCN: "企业微信", EnUS: "WeChat Work"},
+	"test.wechatcompat": {ZhCN: "微信兼容", EnUS: "WeChat Compat"},
 	"test.dingtalk": {ZhCN: "钉钉", EnUS: "DingTalk"},
 	"test.bark":     {ZhCN: "Bark", EnUS: "Bark"},
 	"test.ntfy":     {ZhCN: "Ntfy", EnUS: "Ntfy"},
@@ -26,6 +27,7 @@ var catalog = map[string]map[Lang]string{
 	"channel.title":    {ZhCN: "消息渠道配置", EnUS: "Channel Config"},
 	"channel.feishu":   {ZhCN: "飞书", EnUS: "Feishu"},
 	"channel.wechat":   {ZhCN: "企业微信", EnUS: "WeChat Work"},
+	"channel.wechatcompat": {ZhCN: "微信兼容", EnUS: "WeChat Compat"},
 	"channel.dingtalk": {ZhCN: "钉钉", EnUS: "DingTalk"},
 	"channel.bark":     {ZhCN: "Bark", EnUS: "Bark"},
 	"channel.ntfy":     {ZhCN: "Ntfy", EnUS: "Ntfy"},
@@ -49,6 +51,7 @@ var catalog = map[string]map[Lang]string{
 
 	// ── Webhook URL prompts ────────────────────────────────────
 	"prompt.wechat_webhook":   {ZhCN: "企业微信群机器人 Webhook URL", EnUS: "WeChat Work Bot Webhook URL"},
+	"prompt.wechat_webhook_compat": {ZhCN: "微信兼容 Webhook URL（自建转发服务，接收 {title, content}）", EnUS: "WeChat Compat Webhook URL (custom forwarder accepting {title, content})"},
 	"prompt.dingtalk_webhook": {ZhCN: "钉钉群机器人 Webhook URL", EnUS: "DingTalk Bot Webhook URL"},
 	"prompt.bark_webhook":     {ZhCN: "Bark Webhook URL", EnUS: "Bark Webhook URL"},
 	"prompt.ntfy_topic_url":   {ZhCN: "Ntfy Topic URL", EnUS: "Ntfy Topic URL"},
@@ -71,6 +74,7 @@ var catalog = map[string]map[Lang]string{
 	"err.clean_failed":            {ZhCN: "❌ 清理失败", EnUS: "❌ Reset failed"},
 	"err.save_failed":             {ZhCN: "保存配置失败", EnUS: "failed to save config"},
 	"err.wechat_not_configured":   {ZhCN: "未配置企业微信 Webhook URL，请先运行配置向导", EnUS: "WeChat Work Webhook URL not configured; please run setup first"},
+	"err.wechatcompat_not_configured": {ZhCN: "未配置微信兼容 Webhook URL，请先运行配置向导", EnUS: "WeChat Compat Webhook URL not configured; please run setup first"},
 	"err.dingtalk_not_configured": {ZhCN: "未配置钉钉 Webhook URL，请先运行配置向导", EnUS: "DingTalk Webhook URL not configured; please run setup first"},
 	"err.bark_not_configured":     {ZhCN: "未配置 Bark Webhook URL，请先运行配置向导", EnUS: "Bark Webhook URL not configured; please run setup first"},
 	"err.ntfy_not_configured":     {ZhCN: "未配置 Ntfy Topic URL，请先运行配置向导", EnUS: "Ntfy Topic URL not configured; please run setup first"},
@@ -90,6 +94,9 @@ var catalog = map[string]map[Lang]string{
 	// ── WeChat Work init ───────────────────────────────────────
 	"wechat.init_done": {ZhCN: "✅ 企业微信 Webhook 配置完成", EnUS: "✅ WeChat Work Webhook configured"},
 
+	// ── WeChat Compat init ─────────────────────────────────────
+	"wechatcompat.init_done": {ZhCN: "✅ 微信兼容 Webhook 配置完成", EnUS: "✅ WeChat Compat Webhook configured"},
+
 	// ── DingTalk init ──────────────────────────────────────────
 	"dingtalk.init_done": {ZhCN: "✅ 钉钉 Webhook 配置完成", EnUS: "✅ DingTalk Webhook configured"},
 
@@ -103,9 +110,9 @@ var catalog = map[string]map[Lang]string{
 	"slack.init_done": {ZhCN: "✅ Slack Webhook 配置完成", EnUS: "✅ Slack Webhook configured"},
 
 	// ── View config table ──────────────────────────────────────
-	"view.header":     {ZhCN: "| Agent        | 飞书 | 系统 | 企业微信 | 钉钉 | Bark | Ntfy | Slack |", EnUS: "| Agent        | Feishu|System|  WeCom  | DingT.| Bark | Ntfy | Slack |"},
-	"view.separator":  {ZhCN: "+--------------+------+------+----------+------+------+------+-------+", EnUS: "+--------------+------+------+----------+------+------+------+-------+"},
-	"view.row_format": {ZhCN: "| %-12s |  %s  |  %s  |    %s    |  %s  |  %s  |  %s  |  %s  |", EnUS: "| %-12s |  %s  |  %s  |    %s    |  %s  |  %s  |  %s  |  %s  |"},
+	"view.header":     {ZhCN: "| Agent        | 飞书 | 系统 | 企业微信 | 微信 | 钉钉 | Bark | Ntfy | Slack |", EnUS: "| Agent        | Feishu|System|  WeCom  |WeChat| DingT.| Bark | Ntfy | Slack  |"},
+	"view.separator":  {ZhCN: "+--------------+------+------+----------+------+------+------+------+-------+", EnUS: "+--------------+------+------+----------+------+------+------+------+-------+"},
+	"view.row_format": {ZhCN: "| %-12s |  %s  |  %s  |    %s    |  %s  |  %s  |  %s  |  %s  |  %s  |", EnUS: "| %-12s |  %s  |  %s  |    %s    |  %s  |  %s  |  %s  |  %s  |  %s  |"},
 
 	// ── Doctor output ──────────────────────────────────────────
 	"doctor.config_file":     {ZhCN: "配置文件: %s\n\n", EnUS: "Config file: %s\n\n"},
@@ -113,8 +120,8 @@ var catalog = map[string]map[Lang]string{
 	"doctor.agent_sep":       {ZhCN: "+--------------+----------+----------------+", EnUS: "+--------------+----------+----------------+"},
 	"doctor.agent_header":    {ZhCN: "| Agent        | 安装状态 | 集成配置       |", EnUS: "| Agent        | Installed| Integration    |"},
 	"doctor.channel_status":  {ZhCN: "【通知渠道状态】", EnUS: "【Notification Channels】"},
-	"doctor.channel_sep":     {ZhCN: "+--------------+------+------+----------+------+------+------+-------+", EnUS: "+--------------+------+------+----------+------+------+------+-------+"},
-	"doctor.channel_header":  {ZhCN: "| Agent        | 飞书 | 系统 | 企业微信 | 钉钉 | Bark | Ntfy | Slack |", EnUS: "| Agent        | Feishu|System|  WeCom  | DingT.| Bark | Ntfy | Slack |"},
+	"doctor.channel_sep":     {ZhCN: "+--------------+------+------+----------+------+------+------+------+-------+", EnUS: "+--------------+------+------+----------+------+------+------+------+-------+"},
+	"doctor.channel_header":  {ZhCN: "| Agent        | 飞书 | 系统 | 企业微信 | 微信 | 钉钉 | Bark | Ntfy | Slack |", EnUS: "| Agent        | Feishu|System|  WeCom  |WeChat| DingT.| Bark | Ntfy | Slack  |"},
 	"doctor.system_env":      {ZhCN: "【系统环境】", EnUS: "【System Environment】"},
 	"doctor.env_sep":         {ZhCN: "+----------------------+------------+", EnUS: "+----------------------+------------+"},
 	"doctor.env_header":      {ZhCN: "| 检查项               | 状态       |", EnUS: "| Check Item           | Status     |"},
@@ -143,6 +150,7 @@ var catalog = map[string]map[Lang]string{
 	"test.msg_title":         {ZhCN: "Agent Notify 测试", EnUS: "Agent Notify Test"},
 	"test.msg_body":          {ZhCN: "这是一条测试消息", EnUS: "This is a test notification"},
 	"test.msg_body_wechat":   {ZhCN: "这是一条企业微信测试消息", EnUS: "This is a WeChat Work test notification"},
+	"test.msg_body_wechat_compat": {ZhCN: "这是一条微信兼容测试消息", EnUS: "This is a WeChat Compat test notification"},
 	"test.msg_body_dingtalk": {ZhCN: "这是一条钉钉测试消息", EnUS: "This is a DingTalk test notification"},
 	"test.msg_body_bark":     {ZhCN: "这是一条 Bark 测试消息", EnUS: "This is a Bark test notification"},
 	"test.msg_body_ntfy":     {ZhCN: "这是一条 Ntfy 测试消息", EnUS: "This is a Ntfy test notification"},
@@ -150,6 +158,7 @@ var catalog = map[string]map[Lang]string{
 	"test.feishu_sent":       {ZhCN: "飞书测试通知已发送", EnUS: "Feishu test notification sent"},
 	"test.system_sent":       {ZhCN: "系统测试通知已发送", EnUS: "System test notification sent"},
 	"test.wechat_sent":       {ZhCN: "企业微信测试通知已发送", EnUS: "WeChat Work test notification sent"},
+	"test.wechatcompat_sent": {ZhCN: "微信兼容测试通知已发送", EnUS: "WeChat Compat test notification sent"},
 	"test.dingtalk_sent":     {ZhCN: "钉钉测试通知已发送", EnUS: "DingTalk test notification sent"},
 	"test.bark_sent":         {ZhCN: "Bark 测试通知已发送", EnUS: "Bark test notification sent"},
 	"test.ntfy_sent":         {ZhCN: "Ntfy 测试通知已发送", EnUS: "Ntfy test notification sent"},

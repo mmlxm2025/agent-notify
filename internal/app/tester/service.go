@@ -23,15 +23,16 @@ type ConfigLoader interface {
 
 // Service handles test notifications.
 type Service struct {
-	feishuPreparer   FeishuPreparer
-	configLoader     ConfigLoader
-	feishuSender     notify.Sender
-	systemSender     notify.Sender
-	wechatWorkSender notify.Sender
-	dingTalkSender   notify.Sender
-	barkSender       notify.Sender
-	ntfySender       notify.Sender
-	slackSender      notify.Sender
+	feishuPreparer    FeishuPreparer
+	configLoader      ConfigLoader
+	feishuSender      notify.Sender
+	systemSender      notify.Sender
+	wechatWorkSender  notify.Sender
+	wechatCompatSender notify.Sender
+	dingTalkSender    notify.Sender
+	barkSender        notify.Sender
+	ntfySender        notify.Sender
+	slackSender       notify.Sender
 }
 
 // NewService creates a new tester service.
@@ -69,6 +70,11 @@ func WithSystemSender(sender notify.Sender) Option {
 // WithWechatWorkSender sets the WeChat Work sender.
 func WithWechatWorkSender(sender notify.Sender) Option {
 	return func(s *Service) { s.wechatWorkSender = sender }
+}
+
+// WithWechatCompatSender sets the WeChat Compat sender.
+func WithWechatCompatSender(sender notify.Sender) Option {
+	return func(s *Service) { s.wechatCompatSender = sender }
 }
 
 // WithDingTalkSender sets the DingTalk sender.
@@ -138,6 +144,20 @@ func (s *Service) TestWechatWork(ctx context.Context, webhookURL string) (*TestW
 		return nil, err
 	}
 	return &TestWechatWorkResult{Message: i18n.T("test.wechat_sent")}, nil
+}
+
+// TestWechatCompatResult contains the result of a WeChat Compat test.
+type TestWechatCompatResult struct {
+	Message string
+}
+
+// TestWechatCompat sends a test WeChat Compat notification using the provided webhook URL.
+func (s *Service) TestWechatCompat(ctx context.Context, webhookURL string) (*TestWechatCompatResult, error) {
+	msg := notify.Message{Event: "permission_required", Title: i18n.T("test.msg_title"), Body: i18n.T("test.msg_body_wechat_compat")}
+	if err := s.wechatCompatNotificationSender(webhookURL).Send(ctx, msg); err != nil {
+		return nil, err
+	}
+	return &TestWechatCompatResult{Message: i18n.T("test.wechatcompat_sent")}, nil
 }
 
 // TestDingTalkResult contains the result of a DingTalk test.
@@ -229,6 +249,13 @@ func (s *Service) wechatWorkNotificationSender(webhookURL string) notify.Sender 
 		return s.wechatWorkSender
 	}
 	return notify.NewWechatWorkSender(webhookURL)
+}
+
+func (s *Service) wechatCompatNotificationSender(webhookURL string) notify.Sender {
+	if s.wechatCompatSender != nil {
+		return s.wechatCompatSender
+	}
+	return notify.NewWechatCompatSender(webhookURL)
 }
 
 func (s *Service) dingTalkNotificationSender(webhookURL string) notify.Sender {

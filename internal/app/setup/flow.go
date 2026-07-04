@@ -18,6 +18,7 @@ const (
 	channelSystem   = "system"
 	channelFeishu   = "feishu"
 	channelWXWork   = "wechat-work"
+	channelWXCompat = "wechat-compat"
 	channelDingTalk = "dingtalk"
 	channelBark     = "bark"
 	channelNtfy     = "ntfy"
@@ -31,6 +32,7 @@ func channelOptions() []PromptOption {
 		{Label: i18n.T("channel.system"), Value: channelSystem},
 		{Label: i18n.T("channel.feishu"), Value: channelFeishu},
 		{Label: i18n.T("channel.wechat"), Value: channelWXWork},
+		{Label: i18n.T("channel.wechatcompat"), Value: channelWXCompat},
 		{Label: i18n.T("channel.dingtalk"), Value: channelDingTalk},
 		{Label: i18n.T("channel.bark"), Value: channelBark},
 		{Label: i18n.T("channel.ntfy"), Value: channelNtfy},
@@ -39,17 +41,18 @@ func channelOptions() []PromptOption {
 }
 
 type channelSelection struct {
-	System     bool
-	Feishu     bool
-	WechatWork bool
-	DingTalk   bool
-	Bark       bool
-	Ntfy       bool
-	Slack      bool
+	System      bool
+	Feishu      bool
+	WechatWork  bool
+	WechatCompat bool
+	DingTalk    bool
+	Bark        bool
+	Ntfy        bool
+	Slack       bool
 }
 
 func (c channelSelection) hasAny() bool {
-	return c.System || c.Feishu || c.WechatWork || c.DingTalk || c.Bark || c.Ntfy || c.Slack
+	return c.System || c.Feishu || c.WechatWork || c.WechatCompat || c.DingTalk || c.Bark || c.Ntfy || c.Slack
 }
 
 type configureAgentRequest struct {
@@ -123,6 +126,9 @@ func currentChannelValues(channels config.ChannelsConfig) []string {
 	if channels.WechatWork.Enabled {
 		values = append(values, channelWXWork)
 	}
+	if channels.WechatCompat.Enabled {
+		values = append(values, channelWXCompat)
+	}
 	if channels.DingTalk.Enabled {
 		values = append(values, channelDingTalk)
 	}
@@ -142,8 +148,9 @@ func channelSelectionFromChoices(choices []string) channelSelection {
 	return channelSelection{
 		System:     slices.Contains(choices, channelSystem),
 		Feishu:     slices.Contains(choices, channelFeishu),
-		WechatWork: slices.Contains(choices, channelWXWork),
-		DingTalk:   slices.Contains(choices, channelDingTalk),
+		WechatWork:  slices.Contains(choices, channelWXWork),
+		WechatCompat: slices.Contains(choices, channelWXCompat),
+		DingTalk:    slices.Contains(choices, channelDingTalk),
 		Bark:       slices.Contains(choices, channelBark),
 		Ntfy:       slices.Contains(choices, channelNtfy),
 		Slack:      slices.Contains(choices, channelSlack),
@@ -293,6 +300,7 @@ func applyChannelSelection(channels config.ChannelsConfig, selection channelSele
 	next.System.Enabled = selection.System
 	next.Feishu.Enabled = selection.Feishu
 	next.WechatWork.Enabled = selection.WechatWork
+	next.WechatCompat.Enabled = selection.WechatCompat
 	next.DingTalk.Enabled = selection.DingTalk
 	next.Bark.Enabled = selection.Bark
 	next.Ntfy.Enabled = selection.Ntfy
@@ -322,6 +330,13 @@ func promptWebhookURLs(
 			return config.ChannelsConfig{}, err
 		}
 		next.WechatWork.WebhookURL = webhookURL
+	}
+	if selection.WechatCompat {
+		webhookURL, err := prompter.Input(i18n.T("prompt.wechat_webhook_compat"), next.WechatCompat.WebhookURL)
+		if err != nil {
+			return config.ChannelsConfig{}, err
+		}
+		next.WechatCompat.WebhookURL = webhookURL
 	}
 	if selection.DingTalk {
 		webhookURL, err := prompter.Input(i18n.T("prompt.dingtalk_webhook"), next.DingTalk.WebhookURL)

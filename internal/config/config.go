@@ -44,13 +44,14 @@ type AgentNotifyConfig struct {
 
 // ChannelsConfig holds configuration for notification channels.
 type ChannelsConfig struct {
-	Feishu     ChannelConfig           `yaml:"feishu"`      // 飞书通知配置
-	System     ChannelConfig           `yaml:"system"`      // 系统通知配置
-	WechatWork WechatWorkChannelConfig `yaml:"wechat_work"` // 企业微信通知配置
-	DingTalk   DingTalkChannelConfig   `yaml:"dingtalk"`    // 钉钉通知配置
-	Bark       BarkChannelConfig       `yaml:"bark"`        // Bark 通知配置
-	Ntfy       NtfyChannelConfig       `yaml:"ntfy"`        // Ntfy 通知配置
-	Slack      SlackChannelConfig      `yaml:"slack"`       // Slack 通知配置
+	Feishu      ChannelConfig            `yaml:"feishu"`       // 飞书通知配置
+	System      ChannelConfig            `yaml:"system"`       // 系统通知配置
+	WechatWork  WechatWorkChannelConfig  `yaml:"wechat_work"`  // 企业微信通知配置
+	WechatCompat WechatCompatChannelConfig `yaml:"wechat_compat"` // 微信兼容（自建转发）通知配置
+	DingTalk    DingTalkChannelConfig    `yaml:"dingtalk"`     // 钉钉通知配置
+	Bark        BarkChannelConfig        `yaml:"bark"`         // Bark 通知配置
+	Ntfy        NtfyChannelConfig        `yaml:"ntfy"`         // Ntfy 通知配置
+	Slack       SlackChannelConfig       `yaml:"slack"`        // Slack 通知配置
 }
 
 // ChannelConfig holds configuration for a single notification channel.
@@ -62,6 +63,14 @@ type ChannelConfig struct {
 type WechatWorkChannelConfig struct {
 	Enabled    bool   `yaml:"enabled"`     // 是否启用企业微信通知
 	WebhookURL string `yaml:"webhook_url"` // 群机器人 Webhook URL
+}
+
+// WechatCompatChannelConfig holds configuration for a custom webhook that only
+// accepts {title, content} JSON (e.g. a self-hosted forwarding service relaying
+// to WeChat Work). 与企业微信原生通道的区别在于发送的消息体格式。
+type WechatCompatChannelConfig struct {
+	Enabled    bool   `yaml:"enabled"`     // 是否启用微信兼容通知
+	WebhookURL string `yaml:"webhook_url"` // 自建转发服务 Webhook URL
 }
 
 // DingTalkChannelConfig holds configuration for DingTalk (钉钉) webhook notifications.
@@ -125,7 +134,8 @@ func Default() Config {
 				Channels: ChannelsConfig{
 					System:     ChannelConfig{Enabled: true},
 					Feishu:     ChannelConfig{Enabled: false},
-					WechatWork: WechatWorkChannelConfig{Enabled: false, WebhookURL: ""},
+					WechatWork:   WechatWorkChannelConfig{Enabled: false, WebhookURL: ""},
+					WechatCompat: WechatCompatChannelConfig{Enabled: false, WebhookURL: ""},
 					DingTalk:   DingTalkChannelConfig{Enabled: false, WebhookURL: ""},
 					Bark:       BarkChannelConfig{Enabled: false, WebhookURL: ""},
 					Ntfy:       NtfyChannelConfig{Enabled: false, TopicURL: ""},
@@ -137,7 +147,8 @@ func Default() Config {
 				Channels: ChannelsConfig{
 					System:     ChannelConfig{Enabled: false},
 					Feishu:     ChannelConfig{Enabled: false},
-					WechatWork: WechatWorkChannelConfig{Enabled: false, WebhookURL: ""},
+					WechatWork:   WechatWorkChannelConfig{Enabled: false, WebhookURL: ""},
+					WechatCompat: WechatCompatChannelConfig{Enabled: false, WebhookURL: ""},
 					DingTalk:   DingTalkChannelConfig{Enabled: false, WebhookURL: ""},
 					Bark:       BarkChannelConfig{Enabled: false, WebhookURL: ""},
 					Ntfy:       NtfyChannelConfig{Enabled: false, TopicURL: ""},
@@ -149,7 +160,8 @@ func Default() Config {
 				Channels: ChannelsConfig{
 					System:     ChannelConfig{Enabled: true},
 					Feishu:     ChannelConfig{Enabled: false},
-					WechatWork: WechatWorkChannelConfig{Enabled: false, WebhookURL: ""},
+					WechatWork:   WechatWorkChannelConfig{Enabled: false, WebhookURL: ""},
+					WechatCompat: WechatCompatChannelConfig{Enabled: false, WebhookURL: ""},
 					DingTalk:   DingTalkChannelConfig{Enabled: false, WebhookURL: ""},
 					Bark:       BarkChannelConfig{Enabled: false, WebhookURL: ""},
 					Ntfy:       NtfyChannelConfig{Enabled: false, TopicURL: ""},

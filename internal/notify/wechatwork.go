@@ -76,6 +76,12 @@ func (s *WechatWorkSender) Send(ctx context.Context, msg Message) error {
 
 // buildMarkdown constructs the markdown content for a WeChat Work message.
 func (s *WechatWorkSender) buildMarkdown(msg Message) string {
+	return buildWeComMarkdown(msg)
+}
+
+// buildWeComMarkdown 构造企业微信 markdown 正文，供企业微信原生通道与
+// 微信兼容（自建转发）通道共用，保证两者消息样式一致。
+func buildWeComMarkdown(msg Message) string {
 	emoji := eventEmoji(msg.Event)
 	eventName := eventDisplayName(msg.Event)
 	timestamp := time.Now().Format("2006-01-02 15:04:05")
