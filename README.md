@@ -16,7 +16,7 @@
 
 Agent Notify hooks into the lifecycle events of AI coding agents (Claude Code, Codex, ZCode, etc.) and pushes them to your phone and desktop. Get notified the moment your agent needs permission, is waiting for input, finishes a task, or fails — so you never have to babysit a running agent.
 
-Supported delivery channels: **OS-native system notifications**, **Feishu/Lark**, **WeChat Work (企业微信)**, **DingTalk (钉钉)**, **Bark (iOS)**, and **ntfy**.
+Supported delivery channels: **OS-native system notifications**, **Feishu/Lark**, **WeChat Work (企业微信)**, **WeChat Compat (自建转发)**, **DingTalk (钉钉)**, **Bark (iOS)**, **ntfy**, and **Slack**.
 
 ## Features
 
@@ -31,6 +31,7 @@ Supported delivery channels: **OS-native system notifications**, **Feishu/Lark**
 | <img src="assist/logo/bark.png" width="24" align="absmiddle"> Bark | Push to iOS devices via a Bark webhook URL | Webhook |
 | <img src="assist/logo/ntfy.png" width="24" align="absmiddle"> ntfy | Push via ntfy.sh or self-hosted ntfy server; | Topic |
 | <img src="assist/logo/slack.png" width="24" align="absmiddle"> Slack | Push via Slack Incoming Webhook | Webhook |
+| <img src="assist/logo/qiyeweixin.png" width="24" align="absmiddle"> WeChat Compat | Push via a custom webhook that only accepts `{title, content}` JSON (e.g. a self-hosted forwarder relaying to WeChat) | Webhook |
 | <img src="assist/logo/discord.png" width="24" align="absmiddle"> Discord | Push via Discord channel webhook | 🚧 Webhook |
 | <img src="assist/logo/telegram.png" width="24" align="absmiddle"> Telegram | Push via Telegram Bot API | 🚧 Bot token |
 
@@ -98,6 +99,16 @@ Agent Notify's own config lives at `~/.agent-notify/config.yaml`. Agent integrat
 3. **Codex completion notifications**: in `~/.agent-notify/config.yaml`, keep Codex's `run_completed` event and enable `notify.codex.channels.bark`.
 
 The Bark URL is saved as local config; notifications are sent using Bark's POST JSON parameters `title` and `body`.
+
+### WeChat Compat Setup
+
+The native **WeChat Work** channel sends the standard `{msgtype, markdown}` payload expected by official WeChat Work group bots. Some self-hosted forwarding services, however, only accept a `{title, content}` JSON body — sending the standard format to them fails with `400 "消息内容不能为空"`. The **WeChat Compat** channel targets those services.
+
+1. **Prepare your custom webhook**: get the URL of your self-hosted forwarder that accepts `{title, content}` POST JSON (e.g. `https://your-server.com/api/notify/<key>`).
+2. **Bind it**: run `npx agent-notify`, go to "Channel Config" → select "WeChat Compat", and paste the webhook URL.
+3. **Content format**: the `content` field is sent as **plain text** (markdown syntax such as `##`, `>`, `**`, `` ` ``, `<font>` is stripped), since these forwarders typically don't render markdown.
+
+The webhook URL is saved as local config and shared across all agents by default.
 
 ## Workflow
 
