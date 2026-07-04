@@ -23,10 +23,20 @@ func (c *CodexIntegration) Name() string {
 	return "Codex"
 }
 
-// DetectInstalled checks if the codex CLI is installed.
+// DetectInstalled 检查 Codex 是否安装。
+// 优先查 codex CLI 是否在 PATH 中；若不在（如仅安装了 Codex 桌面版、未把 CLI
+// 加入 PATH），则回退到检查用户配置目录 ~/.codex 是否存在来判定——与 ZCode
+// 桌面版的检测方式一致。config.toml 等配置文件由 CLI 与桌面版共用。
 func (c *CodexIntegration) DetectInstalled() bool {
-	_, err := exec.LookPath("codex")
-	return err == nil
+	if _, err := exec.LookPath("codex"); err == nil {
+		return true
+	}
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return false
+	}
+	info, err := os.Stat(filepath.Join(home, ".codex"))
+	return err == nil && info.IsDir()
 }
 
 // SettingsPath returns the path to Codex's hooks.json file.
