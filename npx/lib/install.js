@@ -9,6 +9,8 @@ function isUnsafeArchivePath(entryPath) {
 
 // NOTIFIER_BUNDLE 是 macOS 打包进 tar.gz 的 terminal-notifier app bundle 目录名。
 const NOTIFIER_BUNDLE = 'terminal-notifier.app';
+// WINDOWS_FOCUS_HELPER 是 Windows release 包内的点击聚焦 helper 文件名。
+const WINDOWS_FOCUS_HELPER = 'toast-focus-helper.exe';
 
 async function installFromArchive({ archivePath, installDir, binaryNameInArchive, finalBinaryName }) {
   fs.mkdirSync(installDir, { recursive: true });
@@ -67,6 +69,16 @@ async function installFromArchive({ archivePath, installDir, binaryNameInArchive
       }
     }
 
+    // Windows: 若 tar.gz 内含点击聚焦 helper，提取到 installDir，与 agent-notify.exe 同目录。
+    const hasWindowsFocusHelper = entries.some((e) => e.path === WINDOWS_FOCUS_HELPER && e.type === 'File');
+    if (hasWindowsFocusHelper) {
+      const srcHelper = path.join(extractDir, WINDOWS_FOCUS_HELPER);
+      const dstHelper = path.join(installDir, WINDOWS_FOCUS_HELPER);
+      if (fs.existsSync(srcHelper)) {
+        fs.copyFileSync(srcHelper, dstHelper);
+      }
+    }
+
     return finalPath;
   } finally {
     fs.rmSync(tempFinalPath, { force: true });
@@ -77,4 +89,5 @@ async function installFromArchive({ archivePath, installDir, binaryNameInArchive
 module.exports = {
   installFromArchive,
   NOTIFIER_BUNDLE,
+  WINDOWS_FOCUS_HELPER,
 };

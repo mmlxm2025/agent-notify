@@ -6,6 +6,7 @@ require (
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/google/uuid v1.6.0
 	github.com/hellolib/client-tools v0.2.0
+	github.com/hellolib/toast v0.3.0
 	github.com/larksuite/oapi-sdk-go/v3 v3.5.3
 	github.com/pelletier/go-toml/v2 v2.3.0
 	github.com/spf13/cobra v1.10.2

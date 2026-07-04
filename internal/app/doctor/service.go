@@ -79,7 +79,7 @@ type DiagnosticsResult struct {
 	CodexHookInstalled        bool
 	SystemNotifyAvailable     bool
 	SystemNotifyName          string
-	TerminalNotifierAvailable bool
+	ClickFocusHelperAvailable bool
 	FeishuCLIReady            bool
 	ClaudeFeishuEnabled       bool
 	ClaudeSystemEnabled       bool
@@ -120,7 +120,7 @@ func (s *Service) Run() (*DiagnosticsResult, error) {
 
 	// System notification detection
 	result.SystemNotifyAvailable, result.SystemNotifyName = detectSystemNotification()
-	result.TerminalNotifierAvailable = detectTerminalNotifier()
+	result.ClickFocusHelperAvailable = detectClickFocusHelper()
 
 	// Config
 	cfgPath, _ := config.DefaultPath()
@@ -288,12 +288,12 @@ func (s *Service) Print(output OutputWriter, result *DiagnosticsResult) {
 	}
 	output.Writef(i18n.T("doctor.env_row_format")+"\n", padRight(systemNotifyName, 20), systemNotifyStatus)
 
-	// 点击跳转（Click-to-Focus）状态：仅 macOS 检测 terminal-notifier
+	// 点击聚焦 helper：macOS 检测 terminal-notifier，Windows 检测 toast-focus-helper。
 	clickFocusStatus := padRight(i18n.T("status.unavailable"), 10)
-	if result.TerminalNotifierAvailable {
+	if result.ClickFocusHelperAvailable {
 		clickFocusStatus = padRight(i18n.T("status.available"), 10)
 	}
-	output.Writef(i18n.T("doctor.env_row_format")+"\n", padRight(i18n.T("doctor.item_terminal_notifier"), 20), clickFocusStatus)
+	output.Writef(i18n.T("doctor.env_row_format")+"\n", padRight(i18n.T("doctor.item_click_focus"), 20), clickFocusStatus)
 
 	feishuCLIStatus := padRight(i18n.T("status.not_configured"), 10)
 	if result.FeishuCLIReady {
@@ -312,13 +312,22 @@ func boolIcon(enabled bool) string {
 	return "❌"
 }
 
-// detectTerminalNotifier checks whether terminal-notifier is available.
-// 优先识别随 npx 解压到 ~/.agent-notify/terminal-notifier.app 的本地预置 bundle，
-// 其次查系统 PATH。仅 macOS 检测，其他平台返回 false。
-func detectTerminalNotifier() bool {
-	if runtime.GOOS != "darwin" {
+// detectClickFocusHelper checks whether the platform click-to-focus helper is available.
+func detectClickFocusHelper() bool {
+	switch runtime.GOOS {
+	case "darwin":
+		return detectTerminalNotifier()
+	case "windows":
+		return detectWindowsFocusHelper()
+	default:
 		return false
 	}
+}
+
+// detectTerminalNotifier checks whether terminal-notifier is available.
+// 优先识别随 npx 解压到 ~/.agent-notify/terminal-notifier.app 的本地预置 bundle，
+// 其次查系统 PATH。
+func detectTerminalNotifier() bool {
 	if home, err := os.UserHomeDir(); err == nil {
 		localExe := home + "/.agent-notify/terminal-notifier.app/Contents/MacOS/terminal-notifier"
 		if info, err := os.Stat(localExe); err == nil && !info.IsDir() {

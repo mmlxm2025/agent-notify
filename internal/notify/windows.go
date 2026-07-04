@@ -6,36 +6,38 @@ import (
 	"time"
 )
 
-type WindowsSender struct {
-	run Runner
+type windowsToastRequest struct {
+	Title        string
+	Body         string
+	ClickToFocus bool
 }
 
-func NewWindowsSender(run Runner) *WindowsSender {
-	return &WindowsSender{run: run}
+type windowsToastFunc func(ctx context.Context, req windowsToastRequest) error
+
+type WindowsSender struct {
+	push         windowsToastFunc
+	clickToFocus bool
+}
+
+func NewWindowsSender(_ Runner, clickToFocus bool) *WindowsSender {
+	return &WindowsSender{push: defaultWindowsToastPush, clickToFocus: clickToFocus}
+}
+
+func NewWindowsSenderWithPusher(push windowsToastFunc, clickToFocus bool) *WindowsSender {
+	return &WindowsSender{push: push, clickToFocus: clickToFocus}
 }
 
 func (s *WindowsSender) Name() string { return "system" }
 
 func (s *WindowsSender) Send(ctx context.Context, msg Message) error {
-	// Use PowerShell with Windows Toast notification
-	// We use a simple approach with Windows.Forms.NotifyIcon
-
-	formattedBody := s.formatBody(msg)
-
-	// PowerShell script to show toast notification
-	// Using System.Windows.Forms.NotifyIcon for balloon tip notifications
-	psScript := fmt.Sprintf(`
-Add-Type -AssemblyName System.Windows.Forms
-$notification = New-Object System.Windows.Forms.NotifyIcon
-$notification.Icon = [System.Drawing.SystemIcons]::Information
-$notification.BalloonTipIcon = [System.Windows.Forms.ToolTipIcon]::Info
-$notification.BalloonTipTitle = %q
-$notification.BalloonTipText = %q
-$notification.Visible = $true
-$notification.ShowBalloonTip(5000)
-`, msg.Title, formattedBody)
-
-	return s.run(ctx, "powershell", "-Command", psScript)
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	return s.push(ctx, windowsToastRequest{
+		Title:        msg.Title,
+		Body:         s.formatBody(msg),
+		ClickToFocus: s.clickToFocus,
+	})
 }
 
 func (s *WindowsSender) formatBody(msg Message) string {

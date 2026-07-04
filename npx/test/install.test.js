@@ -5,7 +5,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { PassThrough } = require('node:stream');
 const tar = require('tar');
-const { installFromArchive } = require('../lib/install');
+const { installFromArchive, WINDOWS_FOCUS_HELPER } = require('../lib/install');
 const { downloadToFile } = require('../lib/download');
 
 test('replaces installed binary with extracted binary', async (t) => {
@@ -39,6 +39,37 @@ test('replaces installed binary with extracted binary', async (t) => {
 
   assert.equal(installedPath, path.join(installDir, 'agent-notify'));
   assert.equal(fs.readFileSync(installedPath, 'utf8'), 'new-binary');
+});
+
+test('installs windows focus helper when archive contains it', async (t) => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-notify-install-'));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const installDir = path.join(root, '.agent-notify');
+  const archivePath = path.join(root, 'agent-notify-v0.2.3-windows-amd64.tar.gz');
+  const extractedBinaryName = 'agent-notify-v0.2.3-windows-amd64.exe';
+
+  fs.mkdirSync(path.join(root, 'src'));
+  fs.writeFileSync(path.join(root, 'src', extractedBinaryName), 'new-binary');
+  fs.writeFileSync(path.join(root, 'src', WINDOWS_FOCUS_HELPER), 'helper-binary');
+
+  await tar.c(
+    {
+      gzip: true,
+      file: archivePath,
+      cwd: path.join(root, 'src'),
+    },
+    [extractedBinaryName, WINDOWS_FOCUS_HELPER],
+  );
+
+  await installFromArchive({
+    archivePath,
+    installDir,
+    binaryNameInArchive: extractedBinaryName,
+    finalBinaryName: 'agent-notify.exe',
+  });
+
+  const helperPath = path.join(installDir, WINDOWS_FOCUS_HELPER);
+  assert.equal(fs.readFileSync(helperPath, 'utf8'), 'helper-binary');
 });
 
 test('throws when archive does not contain expected binary', async (t) => {

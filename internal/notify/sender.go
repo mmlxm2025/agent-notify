@@ -5,10 +5,10 @@ import "runtime"
 // NewSystemSender returns the appropriate system notification sender for the current platform.
 // - darwin: uses macOS notifications (osascript/terminal-notifier)
 // - linux: uses notify-send
-// - windows: uses PowerShell with Windows Forms
+// - windows: uses Windows Runtime toast notifications
 // - other: returns an explicit unsupported sender
 //
-// clickToFocus 控制点击通知是否激活宿主应用（macOS 生效）；为 false 时不追加 -activate。
+// clickToFocus 控制点击通知是否激活宿主应用（macOS/Windows 生效）。
 func NewSystemSender(run Runner, clickToFocus bool) Sender {
 	switch runtime.GOOS {
 	case "darwin":
@@ -16,7 +16,7 @@ func NewSystemSender(run Runner, clickToFocus bool) Sender {
 	case "linux":
 		return NewLinuxSender(run)
 	case "windows":
-		return NewWindowsSender(run)
+		return NewWindowsSender(run, clickToFocus)
 	default:
 		return NewUnsupportedSender(runtime.GOOS)
 	}
