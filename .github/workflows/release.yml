@@ -59,7 +59,13 @@ jobs:
           fi
           binary_name="agent-notify-${{ github.ref_name }}-${{ matrix.goos }}-${{ matrix.goarch }}${ext}"
           archive_name="agent-notify-${{ github.ref_name }}-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz"
-          tar -czvf "${archive_name}" "${binary_name}"
+          # macOS: 将预置的 terminal-notifier.app 打包进压缩包，用户下载 agent-notify 时一并获得
+          if [ "${{ matrix.goos }}" = "darwin" ]; then
+            unzip -o -q thirdparty/helper/mac/terminal-notifier-2.0.0.zip -d .
+            tar -czvf "${archive_name}" "${binary_name}" terminal-notifier.app
+          else
+            tar -czvf "${archive_name}" "${binary_name}"
+          fi
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

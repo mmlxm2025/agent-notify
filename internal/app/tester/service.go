@@ -119,7 +119,7 @@ type TestSystemResult struct {
 
 // TestSystem sends a test system notification.
 func (s *Service) TestSystem(ctx context.Context) (*TestSystemResult, error) {
-	msg := notify.Message{Event: "permission_required", Title: i18n.T("test.msg_title"), Body: i18n.T("test.msg_body")}
+	msg := notify.Message{Event: "permission_required", Title: i18n.T("test.msg_title"), Body: i18n.T("test.msg_body"), SourceApp: notify.DetectSourceApp()}
 	if err := s.systemNotificationSender().Send(ctx, msg); err != nil {
 		return nil, err
 	}
@@ -221,7 +221,7 @@ func (s *Service) systemNotificationSender() notify.Sender {
 	if s.systemSender != nil {
 		return s.systemSender
 	}
-	return notify.NewSystemSender(notify.DefaultRunner)
+	return notify.NewSystemSender(notify.DefaultRunner, true)
 }
 
 func (s *Service) wechatWorkNotificationSender(webhookURL string) notify.Sender {

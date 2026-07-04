@@ -9,6 +9,7 @@ const { buildAssetName, buildDownloadUrl } = require('../lib/release');
 const { downloadToFile } = require('../lib/download');
 const { installFromArchive } = require('../lib/install');
 const { runBinary } = require('../lib/run');
+const { clearQuarantine, adHocSign, NOTIFIER_BUNDLE } = require('../lib/notifier');
 
 function getDesiredVersion() {
   return require('../package.json').version;
@@ -35,12 +36,24 @@ async function downloadAndInstall(version, target, binaryPath) {
   const binaryNameInArchive = `agent-notify-v${version}-${target.goos}-${target.goarch}${target.ext}`;
 
   await downloadToFile(buildDownloadUrl(version, assetName), archivePath);
-  return installFromArchive({
+  const installed = installFromArchive({
     archivePath,
     installDir: path.dirname(binaryPath),
     binaryNameInArchive,
     finalBinaryName: path.basename(binaryPath),
   });
+
+  // macOS：terminal-notifier.app 已随 tar.gz 解压到 installDir（见 install.js），
+  // 此处只做 quarantine 清除与 ad-hoc 签名（点击跳转依赖）。失败仅警告，不阻断主流程。
+  if (process.platform === 'darwin') {
+    const bundlePath = path.join(path.dirname(binaryPath), NOTIFIER_BUNDLE);
+    if (fs.existsSync(bundlePath)) {
+      try { clearQuarantine(bundlePath); } catch {}
+      try { adHocSign(bundlePath); } catch {}
+    }
+  }
+
+  return installed;
 }
 
 async function main(argv, deps = {}) {

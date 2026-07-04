@@ -2,21 +2,9 @@
   "permissions": {
     "allow": [
       "WebSearch",
-      "WebFetch(domain:developers.openai.com)",
-      "WebFetch(domain:github.com)",
-      "Bash(go *)",
-      "Bash(codex --help)",
-      "Bash(codex hooks *)",
-      "Bash(codex /hooks --help)",
-      "Bash(codex features *)",
-      "Bash(git *)",
-      "Bash(rtk *)",
-      "WebFetch(domain:ccb.agent-aura.top)",
-      "Bash(grep -E '\\\\.go$')",
-      "Bash(python3 *)",
-      "Bash(make fmt *)",
-      "Bash(make vet *)",
-      "Bash(make build *)"
+      "WebFetch(*)",
+      "Bash(*)",
+      "WebFetch(domain:ccb.agent-aura.top)"
     ]
   }
 }

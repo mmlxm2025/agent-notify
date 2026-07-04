@@ -45,7 +45,7 @@ type AgentNotifyConfig struct {
 // ChannelsConfig holds configuration for notification channels.
 type ChannelsConfig struct {
 	Feishu     ChannelConfig           `yaml:"feishu"`      // 飞书通知配置
-	System     ChannelConfig           `yaml:"system"`      // 系统通知配置
+	System     SystemChannelConfig     `yaml:"system"`      // 系统通知配置
 	WechatWork WechatWorkChannelConfig `yaml:"wechat_work"` // 企业微信通知配置
 	DingTalk   DingTalkChannelConfig   `yaml:"dingtalk"`    // 钉钉通知配置
 	Bark       BarkChannelConfig       `yaml:"bark"`        // Bark 通知配置
@@ -56,6 +56,12 @@ type ChannelsConfig struct {
 // ChannelConfig holds configuration for a single notification channel.
 type ChannelConfig struct {
 	Enabled bool `yaml:"enabled"` // 是否启用该通知渠道
+}
+
+// SystemChannelConfig holds configuration for OS-native system notifications.
+type SystemChannelConfig struct {
+	Enabled      bool `yaml:"enabled"`        // 是否启用系统通知渠道
+	ClickToFocus bool `yaml:"click_to_focus"` // 点击通知是否激活宿主应用；识别不到 BundleID 时自动降级
 }
 
 // WechatWorkChannelConfig holds configuration for WeChat Work (企业微信) webhook notifications.
@@ -123,7 +129,7 @@ func Default() Config {
 			ClaudeCode: AgentNotifyConfig{
 				Events: append([]string(nil), allEvents...),
 				Channels: ChannelsConfig{
-					System:     ChannelConfig{Enabled: true},
+					System:     SystemChannelConfig{Enabled: true, ClickToFocus: true},
 					Feishu:     ChannelConfig{Enabled: false},
 					WechatWork: WechatWorkChannelConfig{Enabled: false, WebhookURL: ""},
 					DingTalk:   DingTalkChannelConfig{Enabled: false, WebhookURL: ""},
@@ -135,7 +141,7 @@ func Default() Config {
 			Codex: AgentNotifyConfig{
 				Events: append([]string(nil), codexEvents...),
 				Channels: ChannelsConfig{
-					System:     ChannelConfig{Enabled: false},
+					System:     SystemChannelConfig{Enabled: false, ClickToFocus: true},
 					Feishu:     ChannelConfig{Enabled: false},
 					WechatWork: WechatWorkChannelConfig{Enabled: false, WebhookURL: ""},
 					DingTalk:   DingTalkChannelConfig{Enabled: false, WebhookURL: ""},
@@ -147,7 +153,7 @@ func Default() Config {
 			ZCode: AgentNotifyConfig{
 				Events: append([]string(nil), zcodeEvents...),
 				Channels: ChannelsConfig{
-					System:     ChannelConfig{Enabled: true},
+					System:     SystemChannelConfig{Enabled: true, ClickToFocus: true},
 					Feishu:     ChannelConfig{Enabled: false},
 					WechatWork: WechatWorkChannelConfig{Enabled: false, WebhookURL: ""},
 					DingTalk:   DingTalkChannelConfig{Enabled: false, WebhookURL: ""},

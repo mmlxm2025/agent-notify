@@ -7,6 +7,9 @@ function isUnsafeArchivePath(entryPath) {
   return path.isAbsolute(entryPath) || entryPath.split('/').includes('..');
 }
 
+// NOTIFIER_BUNDLE 是 macOS 打包进 tar.gz 的 terminal-notifier app bundle 目录名。
+const NOTIFIER_BUNDLE = 'terminal-notifier.app';
+
 async function installFromArchive({ archivePath, installDir, binaryNameInArchive, finalBinaryName }) {
   fs.mkdirSync(installDir, { recursive: true });
 
@@ -31,11 +34,11 @@ async function installFromArchive({ archivePath, installDir, binaryNameInArchive
       throw new Error('unsafe archive contents');
     }
 
+    // 解压全部内容（含可能的 terminal-notifier.app 目录树）
     await tar.x({
       file: archivePath,
       cwd: extractDir,
       gzip: true,
-      filter: (entryPath) => entryPath === binaryNameInArchive,
     });
 
     const extractedPath = path.join(extractDir, binaryNameInArchive);
@@ -49,6 +52,21 @@ async function installFromArchive({ archivePath, installDir, binaryNameInArchive
     }
     fs.renameSync(tempFinalPath, finalPath);
 
+    // macOS: 若 tar.gz 内含 terminal-notifier.app，提取到 installDir
+    const hasNotifier = entries.some((e) => e.path === NOTIFIER_BUNDLE || e.path.startsWith(NOTIFIER_BUNDLE + '/'));
+    if (hasNotifier) {
+      const srcBundle = path.join(extractDir, NOTIFIER_BUNDLE);
+      const dstBundle = path.join(installDir, NOTIFIER_BUNDLE);
+      if (fs.existsSync(srcBundle)) {
+        fs.rmSync(dstBundle, { recursive: true, force: true });
+        fs.cpSync(srcBundle, dstBundle, { recursive: true });
+        const exe = path.join(dstBundle, 'Contents', 'MacOS', 'terminal-notifier');
+        if (fs.existsSync(exe)) {
+          fs.chmodSync(exe, 0o755);
+        }
+      }
+    }
+
     return finalPath;
   } finally {
     fs.rmSync(tempFinalPath, { force: true });
@@ -58,4 +76,5 @@ async function installFromArchive({ archivePath, installDir, binaryNameInArchive
 
 module.exports = {
   installFromArchive,
+  NOTIFIER_BUNDLE,
 };

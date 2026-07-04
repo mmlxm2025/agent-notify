@@ -71,41 +71,42 @@ const (
 
 // DiagnosticsResult contains diagnostic results.
 type DiagnosticsResult struct {
-	ConfigPath              string
-	ConfigExists            bool
-	ClaudeInstalled         bool
-	ClaudeHookInstalled     bool
-	CodexInstalled          bool
-	CodexHookInstalled      bool
-	SystemNotifyAvailable   bool
-	SystemNotifyName        string
-	FeishuCLIReady          bool
-	ClaudeFeishuEnabled     bool
-	ClaudeSystemEnabled     bool
-	ClaudeWechatWorkEnabled bool
-	ClaudeDingTalkEnabled   bool
-	ClaudeBarkEnabled       bool
-	ClaudeNtfyEnabled       bool
-	ClaudeSlackEnabled      bool
-	CodexFeishuEnabled      bool
-	CodexSystemEnabled      bool
-	CodexWechatWorkEnabled  bool
-	CodexDingTalkEnabled    bool
-	CodexBarkEnabled        bool
-	CodexNtfyEnabled        bool
-	CodexSlackEnabled       bool
-	ZcodeInstalled          bool
-	ZcodeHookInstalled      bool
-	ZcodeFeishuEnabled      bool
-	ZcodeSystemEnabled      bool
-	ZcodeWechatWorkEnabled  bool
-	ZcodeDingTalkEnabled    bool
-	ZcodeBarkEnabled        bool
-	ZcodeNtfyEnabled        bool
-	ZcodeSlackEnabled       bool
-	ClaudeIntegrationStatus DiagnosticStatus
-	CodexIntegrationStatus  DiagnosticStatus
-	ZcodeIntegrationStatus  DiagnosticStatus
+	ConfigPath                string
+	ConfigExists              bool
+	ClaudeInstalled           bool
+	ClaudeHookInstalled       bool
+	CodexInstalled            bool
+	CodexHookInstalled        bool
+	SystemNotifyAvailable     bool
+	SystemNotifyName          string
+	TerminalNotifierAvailable bool
+	FeishuCLIReady            bool
+	ClaudeFeishuEnabled       bool
+	ClaudeSystemEnabled       bool
+	ClaudeWechatWorkEnabled   bool
+	ClaudeDingTalkEnabled     bool
+	ClaudeBarkEnabled         bool
+	ClaudeNtfyEnabled         bool
+	ClaudeSlackEnabled        bool
+	CodexFeishuEnabled        bool
+	CodexSystemEnabled        bool
+	CodexWechatWorkEnabled    bool
+	CodexDingTalkEnabled      bool
+	CodexBarkEnabled          bool
+	CodexNtfyEnabled          bool
+	CodexSlackEnabled         bool
+	ZcodeInstalled            bool
+	ZcodeHookInstalled        bool
+	ZcodeFeishuEnabled        bool
+	ZcodeSystemEnabled        bool
+	ZcodeWechatWorkEnabled    bool
+	ZcodeDingTalkEnabled      bool
+	ZcodeBarkEnabled          bool
+	ZcodeNtfyEnabled          bool
+	ZcodeSlackEnabled         bool
+	ClaudeIntegrationStatus   DiagnosticStatus
+	CodexIntegrationStatus    DiagnosticStatus
+	ZcodeIntegrationStatus    DiagnosticStatus
 }
 
 // Run executes diagnostics and returns results.
@@ -119,6 +120,7 @@ func (s *Service) Run() (*DiagnosticsResult, error) {
 
 	// System notification detection
 	result.SystemNotifyAvailable, result.SystemNotifyName = detectSystemNotification()
+	result.TerminalNotifierAvailable = detectTerminalNotifier()
 
 	// Config
 	cfgPath, _ := config.DefaultPath()
@@ -286,6 +288,13 @@ func (s *Service) Print(output OutputWriter, result *DiagnosticsResult) {
 	}
 	output.Writef(i18n.T("doctor.env_row_format")+"\n", padRight(systemNotifyName, 20), systemNotifyStatus)
 
+	// 点击跳转（Click-to-Focus）状态：仅 macOS 检测 terminal-notifier
+	clickFocusStatus := padRight(i18n.T("status.unavailable"), 10)
+	if result.TerminalNotifierAvailable {
+		clickFocusStatus = padRight(i18n.T("status.available"), 10)
+	}
+	output.Writef(i18n.T("doctor.env_row_format")+"\n", padRight(i18n.T("doctor.item_terminal_notifier"), 20), clickFocusStatus)
+
 	feishuCLIStatus := padRight(i18n.T("status.not_configured"), 10)
 	if result.FeishuCLIReady {
 		feishuCLIStatus = padRight(i18n.T("status.ready"), 10)
@@ -301,6 +310,25 @@ func boolIcon(enabled bool) string {
 		return "✅"
 	}
 	return "❌"
+}
+
+// detectTerminalNotifier checks whether terminal-notifier is available.
+// 优先识别随 npx 解压到 ~/.agent-notify/terminal-notifier.app 的本地预置 bundle，
+// 其次查系统 PATH。仅 macOS 检测，其他平台返回 false。
+func detectTerminalNotifier() bool {
+	if runtime.GOOS != "darwin" {
+		return false
+	}
+	if home, err := os.UserHomeDir(); err == nil {
+		localExe := home + "/.agent-notify/terminal-notifier.app/Contents/MacOS/terminal-notifier"
+		if info, err := os.Stat(localExe); err == nil && !info.IsDir() {
+			return true
+		}
+	}
+	if _, err := exec.LookPath("terminal-notifier"); err == nil {
+		return true
+	}
+	return false
 }
 
 // detectSystemNotification checks if system notifications are available.

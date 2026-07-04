@@ -11,6 +11,9 @@ import (
 )
 
 func Dispatch(ctx context.Context, cfg config.Config, statePath, logPath string, msg notify.Message) error {
+	// hook 进程由终端 / IDE 启动，此处能从继承的环境变量识别宿主应用
+	msg.SourceApp = notify.DetectSourceApp()
+
 	store := state.NewStore(statePath)
 	senders := buildSenders(cfg, msg)
 	if len(senders) == 0 {
@@ -44,7 +47,7 @@ func buildSenders(cfg config.Config, msg notify.Message) []notify.Sender {
 	}
 
 	if notifyCfg.Channels.System.Enabled {
-		senders = append(senders, notify.NewSystemSender(notify.DefaultRunner))
+		senders = append(senders, notify.NewSystemSender(notify.DefaultRunner, notifyCfg.Channels.System.ClickToFocus))
 	}
 	if notifyCfg.Channels.Feishu.Enabled {
 		senders = append(senders, notify.NewDefaultFeishuSender())

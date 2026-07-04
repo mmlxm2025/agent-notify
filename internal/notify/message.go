@@ -9,6 +9,13 @@ type Message struct {
 	Workspace string
 	Title     string
 	Body      string
+	SourceApp SourceApp
+}
+
+// SourceApp 描述触发事件的宿主应用（终端 / IDE），用于系统通知点击后跳转聚焦。
+type SourceApp struct {
+	BundleID    string // macOS bundle identifier，激活目标（主信号解析结果）
+	TermProgram string // TERM_PROGRAM 原始值，诊断/扩展用
 }
 
 type Sender interface {
