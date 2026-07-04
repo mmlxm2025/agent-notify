@@ -121,10 +121,6 @@ The Bark URL is saved as local config; notifications are sent using Bark's POST 
 
 Thanks for the support and feedback from the friends at [LINUX DO](https://linux.do/).
 
-## ❤️ Sponsor
-
-Thanks to **[DDS (呆呆兽)](https://www.ddshub.cc/register?aff=E7N6PDYWW4N5)** for sponsoring this project! DDS is a reliable, high-performance Claude and Codex API relay, offering cost-effective, accelerated Claude / Codex API access in China for both individuals and enterprises. It supports full-strength models including Claude Haiku / Opus / Sonnet, and enterprise customers can enjoy customized groupings and technical support.
-
 ## Star History
 
 <a href="https://www.star-history.com/?repos=hellolib%2Fagent-notify&type=date&logscale=&legend=top-left">
