@@ -120,7 +120,7 @@ var catalog = map[string]map[Lang]string{
 	"doctor.env_header":       {ZhCN: "| 检查项               | 状态       |", EnUS: "| Check Item           | Status     |"},
 	"doctor.item_config":      {ZhCN: "配置文件", EnUS: "Config file"},
 	"doctor.item_feishu_cli":  {ZhCN: "飞书 CLI", EnUS: "Feishu CLI"},
-	"doctor.item_click_focus": {ZhCN: "点击聚焦 Helper", EnUS: "Click-Focus Helper"},
+	"doctor.item_click_focus": {ZhCN: "点击聚焦", EnUS: "Click-Focus"},
 	"doctor.row_format":       {ZhCN: "| %-12s | %s | %s |", EnUS: "| %-12s | %s | %s |"},
 	"doctor.env_row_format":   {ZhCN: "| %s | %s |", EnUS: "| %s | %s |"},
 

@@ -4,14 +4,24 @@ import (
 	"context"
 	"fmt"
 	"time"
+
+	"github.com/hellolib/agent-notify/internal/linuxfocus"
 )
 
 type LinuxSender struct {
-	run Runner
+	run          Runner
+	clickToFocus bool
+	startFocus   linuxFocusStarter
 }
 
-func NewLinuxSender(run Runner) *LinuxSender {
-	return &LinuxSender{run: run}
+type linuxFocusStarter func(ctx context.Context, title, body string) error
+
+func NewLinuxSender(run Runner, clickToFocus bool) *LinuxSender {
+	return &LinuxSender{run: run, clickToFocus: clickToFocus, startFocus: defaultLinuxFocusStarter}
+}
+
+func NewLinuxSenderWithFocusStarter(run Runner, clickToFocus bool, starter linuxFocusStarter) *LinuxSender {
+	return &LinuxSender{run: run, clickToFocus: clickToFocus, startFocus: starter}
 }
 
 func (s *LinuxSender) Name() string { return "system" }
@@ -21,18 +31,38 @@ func (s *LinuxSender) Send(ctx context.Context, msg Message) error {
 	// Format: notify-send "Title" "Body" [options]
 
 	formattedBody := s.formatBody(msg)
+	if s.clickToFocus && s.startFocus != nil {
+		if err := s.startFocus(ctx, msg.Title, formattedBody); err == nil {
+			return nil
+		}
+	}
 
 	// notify-send arguments:
 	// -a "Claude Code" sets app name
 	// -u normal sets urgency
 	// -t 5000 sets timeout in milliseconds (5 seconds)
-	return s.run(ctx, "notify-send",
+	if err := linuxfocus.SendNotification(ctx, msg.Title, formattedBody); err == nil {
+		return nil
+	}
+	return s.run(ctx, linuxfocus.CommandPath("notify-send"),
 		"-a", "Claude Code",
 		"-u", "normal",
 		"-t", "5000",
 		msg.Title,
 		formattedBody,
 	)
+}
+
+func defaultLinuxFocusStarter(ctx context.Context, title, body string) error {
+	windowID, err := linuxfocus.ResolveWindowID(ctx, 0)
+	if err != nil {
+		return err
+	}
+	return linuxfocus.StartDetached(ctx, linuxfocus.Request{
+		Title:    title,
+		Body:     body,
+		WindowID: windowID,
+	})
 }
 
 func (s *LinuxSender) formatBody(msg Message) string {

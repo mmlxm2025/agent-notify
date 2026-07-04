@@ -317,6 +317,8 @@ func detectClickFocusHelper() bool {
 	switch runtime.GOOS {
 	case "darwin":
 		return detectTerminalNotifier()
+	case "linux":
+		return detectLinuxFocusSupport()
 	case "windows":
 		return detectWindowsFocusHelper()
 	default:

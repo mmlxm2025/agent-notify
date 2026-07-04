@@ -14,15 +14,15 @@ func TestLinuxSenderSendCallsNotifySend(t *testing.T) {
 		gotName = name
 		gotArgs = args
 		return nil
-	})
+	}, false)
 
 	msg := Message{Title: "Test Title", Body: "Test Body", Workspace: "/path/to/project"}
 	if err := sender.Send(context.Background(), msg); err != nil {
 		t.Fatalf("Send() error = %v", err)
 	}
 
-	if gotName != "notify-send" {
-		t.Fatalf("name = %q, want notify-send", gotName)
+	if !strings.HasSuffix(gotName, "notify-send") {
+		t.Fatalf("name = %q, want notify-send command", gotName)
 	}
 
 	// Verify expected arguments structure
@@ -54,7 +54,7 @@ func TestLinuxSenderSendWithoutWorkspace(t *testing.T) {
 	sender := NewLinuxSender(func(_ context.Context, name string, args ...string) error {
 		gotArgs = args
 		return nil
-	})
+	}, false)
 
 	msg := Message{Title: "Title", Body: "Body", Workspace: ""}
 	if err := sender.Send(context.Background(), msg); err != nil {
@@ -119,6 +119,53 @@ func TestLinuxSenderFormatBody(t *testing.T) {
 				t.Errorf("formatBody() = %q, too short to contain timestamp", result)
 			}
 		})
+	}
+}
+
+func TestLinuxSenderClickToFocusStartsFocusHelper(t *testing.T) {
+	runCalled := false
+	startCalled := false
+
+	sender := NewLinuxSenderWithFocusStarter(func(_ context.Context, name string, args ...string) error {
+		runCalled = true
+		return nil
+	}, true, func(_ context.Context, title, body string) error {
+		startCalled = true
+		if title != "Title" {
+			t.Fatalf("title = %q, want Title", title)
+		}
+		if !strings.Contains(body, "Body") {
+			t.Fatalf("body = %q, want to contain Body", body)
+		}
+		return nil
+	})
+
+	if err := sender.Send(context.Background(), Message{Title: "Title", Body: "Body"}); err != nil {
+		t.Fatalf("Send() error = %v", err)
+	}
+	if !startCalled {
+		t.Fatal("focus starter was not called")
+	}
+	if runCalled {
+		t.Fatal("plain notify-send runner was called after focus starter succeeded")
+	}
+}
+
+func TestLinuxSenderClickToFocusFallsBackToNotifySend(t *testing.T) {
+	var gotName string
+
+	sender := NewLinuxSenderWithFocusStarter(func(_ context.Context, name string, args ...string) error {
+		gotName = name
+		return nil
+	}, true, func(_ context.Context, title, body string) error {
+		return context.Canceled
+	})
+
+	if err := sender.Send(context.Background(), Message{Title: "Title", Body: "Body"}); err != nil {
+		t.Fatalf("Send() error = %v", err)
+	}
+	if !strings.HasSuffix(gotName, "notify-send") {
+		t.Fatalf("fallback runner = %q, want notify-send command", gotName)
 	}
 }
 

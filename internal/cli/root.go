@@ -40,6 +40,7 @@ func NewRootCmd(ctx context.Context, streams Streams) *cobra.Command {
 		newHandleClaudeHookCmd(ctx, streams),
 		newHandleCodexHookCmd(ctx, streams),
 		newHandleZcodeHookCmd(ctx, streams),
+		newLinuxNotifyWaitCmd(ctx),
 	)
 
 	return root

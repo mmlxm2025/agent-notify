@@ -4,6 +4,9 @@ go 1.25.0
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.7
+	github.com/BurntSushi/xgb v0.0.0-20210121224620-deaf085860bc
+	github.com/BurntSushi/xgbutil v0.0.0-20190907113008-ad855c713046
+	github.com/godbus/dbus/v5 v5.2.2
 	github.com/google/uuid v1.6.0
 	github.com/hellolib/client-tools v0.2.0
 	github.com/hellolib/toast v0.3.0
@@ -15,7 +18,6 @@ require (
 
 require (
 	github.com/danieljoos/wincred v1.2.3 // indirect
-	github.com/godbus/dbus/v5 v5.2.2 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
