@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+
+	"github.com/hellolib/agent-notify/internal/testutil"
 )
 
 // mockIntegration implements agentintegrations.Integration for testing
@@ -107,8 +109,7 @@ func TestService_Run(t *testing.T) {
 }
 
 func TestService_Run_ConfigPresenceAffectsIntegrationStatus(t *testing.T) {
-	dir := t.TempDir()
-	t.Setenv("HOME", dir)
+	testutil.IsolateHome(t)
 
 	svc := NewService(
 		WithClaudeIntegration(&mockIntegration{
@@ -166,6 +167,8 @@ func TestService_Print(t *testing.T) {
 		FeishuCLIReady:          true,
 		ClaudeFeishuEnabled:     true,
 		ClaudeSystemEnabled:     true,
+		ClaudeWechatEnabled:     true,
+		ClaudeWechatWorkEnabled: false,
 		CodexFeishuEnabled:      false,
 		CodexSystemEnabled:      false,
 		ClaudeIntegrationStatus: StatusInstalled,
@@ -182,6 +185,16 @@ func TestService_Print(t *testing.T) {
 	}
 	if !strings.Contains(output.output, "❌ 未安装 Agent") {
 		t.Fatal("expected missing-agent status to appear in output")
+	}
+	// Channel row must include personal WeChat + WeCom (8 status cells).
+	// Regression: missing WeChat arg produced "%!s(MISSING)" under Slack.
+	if strings.Contains(output.output, "%!") {
+		t.Fatalf("channel table has printf formatting error:\n%s", output.output)
+	}
+	// Claude Code row: Feishu ✅, System ✅, WeChat ✅, WeCom ❌ ...
+	// Agent name is left-padded to 12 runes via %-12s ("Claude Code ").
+	if !strings.Contains(output.output, "| Claude Code  |  ✅  |  ✅  |  ✅  |  ❌  |") {
+		t.Fatalf("expected Claude channel row with personal WeChat enabled:\n%s", output.output)
 	}
 }
 

@@ -269,7 +269,38 @@ func Load(path string) (Config, error) {
 		cfg.Behavior.Locale = "zh-CN"
 	}
 
+	// Channel-only setup (e.g. menu → 微信) enables webhooks without writing events.
+	// Empty events mean dispatch never sends; backfill defaults when any channel is on.
+	def := Default()
+	cfg.Notify.ClaudeCode.Events = ensureEvents(cfg.Notify.ClaudeCode, def.Notify.ClaudeCode.Events)
+	cfg.Notify.Codex.Events = ensureEvents(cfg.Notify.Codex, def.Notify.Codex.Events)
+	cfg.Notify.ZCode.Events = ensureEvents(cfg.Notify.ZCode, def.Notify.ZCode.Events)
+	cfg.Notify.Grok.Events = ensureEvents(cfg.Notify.Grok, def.Notify.Grok.Events)
+
 	return cfg, nil
+}
+
+// ensureEvents keeps existing events. When channels are enabled but events were never
+// persisted (common after channel-menu-only setup), fill agent-specific defaults.
+func ensureEvents(notifyCfg AgentNotifyConfig, defaults []string) []string {
+	if len(notifyCfg.Events) > 0 {
+		return notifyCfg.Events
+	}
+	if !anyChannelEnabled(notifyCfg.Channels) {
+		return notifyCfg.Events
+	}
+	return append([]string(nil), defaults...)
+}
+
+func anyChannelEnabled(c ChannelsConfig) bool {
+	return c.System.Enabled ||
+		c.Feishu.Enabled ||
+		c.Wechat.Enabled ||
+		c.WechatWork.Enabled ||
+		c.DingTalk.Enabled ||
+		c.Bark.Enabled ||
+		c.Ntfy.Enabled ||
+		c.Slack.Enabled
 }
 
 func Save(path string, cfg Config) error {

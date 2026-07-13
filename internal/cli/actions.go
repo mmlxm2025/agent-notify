@@ -277,9 +277,11 @@ func printCurrentNotifyConfig(streams Streams) error {
 	fmt.Fprintln(streams.Stdout, i18n.T("view.separator"))
 	fmt.Fprintln(streams.Stdout, i18n.T("view.header"))
 	fmt.Fprintln(streams.Stdout, i18n.T("view.separator"))
+	// Columns: Feishu | System | WeChat | WeCom | DingTalk | Bark | Ntfy | Slack
 	fmt.Fprintf(streams.Stdout, i18n.T("view.row_format")+"\n", "Claude Code",
 		statusIcon(cfg.Notify.ClaudeCode.Channels.Feishu.Enabled),
 		statusIcon(cfg.Notify.ClaudeCode.Channels.System.Enabled),
+		statusIcon(cfg.Notify.ClaudeCode.Channels.Wechat.Enabled),
 		statusIcon(cfg.Notify.ClaudeCode.Channels.WechatWork.Enabled),
 		statusIcon(cfg.Notify.ClaudeCode.Channels.DingTalk.Enabled),
 		statusIcon(cfg.Notify.ClaudeCode.Channels.Bark.Enabled),
@@ -288,6 +290,7 @@ func printCurrentNotifyConfig(streams Streams) error {
 	fmt.Fprintf(streams.Stdout, i18n.T("view.row_format")+"\n", "Codex",
 		statusIcon(cfg.Notify.Codex.Channels.Feishu.Enabled),
 		statusIcon(cfg.Notify.Codex.Channels.System.Enabled),
+		statusIcon(cfg.Notify.Codex.Channels.Wechat.Enabled),
 		statusIcon(cfg.Notify.Codex.Channels.WechatWork.Enabled),
 		statusIcon(cfg.Notify.Codex.Channels.DingTalk.Enabled),
 		statusIcon(cfg.Notify.Codex.Channels.Bark.Enabled),
@@ -296,6 +299,7 @@ func printCurrentNotifyConfig(streams Streams) error {
 	fmt.Fprintf(streams.Stdout, i18n.T("view.row_format")+"\n", "ZCode",
 		statusIcon(cfg.Notify.ZCode.Channels.Feishu.Enabled),
 		statusIcon(cfg.Notify.ZCode.Channels.System.Enabled),
+		statusIcon(cfg.Notify.ZCode.Channels.Wechat.Enabled),
 		statusIcon(cfg.Notify.ZCode.Channels.WechatWork.Enabled),
 		statusIcon(cfg.Notify.ZCode.Channels.DingTalk.Enabled),
 		statusIcon(cfg.Notify.ZCode.Channels.Bark.Enabled),
@@ -304,6 +308,7 @@ func printCurrentNotifyConfig(streams Streams) error {
 	fmt.Fprintf(streams.Stdout, i18n.T("view.row_format")+"\n", "Grok",
 		statusIcon(cfg.Notify.Grok.Channels.Feishu.Enabled),
 		statusIcon(cfg.Notify.Grok.Channels.System.Enabled),
+		statusIcon(cfg.Notify.Grok.Channels.Wechat.Enabled),
 		statusIcon(cfg.Notify.Grok.Channels.WechatWork.Enabled),
 		statusIcon(cfg.Notify.Grok.Channels.DingTalk.Enabled),
 		statusIcon(cfg.Notify.Grok.Channels.Bark.Enabled),
