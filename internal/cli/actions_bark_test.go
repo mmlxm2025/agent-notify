@@ -36,7 +36,13 @@ func TestRunInitBarkWritesBothAgentConfigs(t *testing.T) {
 	if !cfg.Notify.Codex.Channels.Bark.Enabled {
 		t.Fatal("Codex bark should be enabled")
 	}
+	if !cfg.Notify.Grok.Channels.Bark.Enabled {
+		t.Fatal("Grok bark should be enabled")
+	}
 	if cfg.Notify.Codex.Channels.Bark.WebhookURL != wantURL {
 		t.Fatalf("Codex bark URL = %q, want %q", cfg.Notify.Codex.Channels.Bark.WebhookURL, wantURL)
+	}
+	if cfg.Notify.Grok.Channels.Bark.WebhookURL != wantURL {
+		t.Fatalf("Grok bark URL = %q, want %q", cfg.Notify.Grok.Channels.Bark.WebhookURL, wantURL)
 	}
 }

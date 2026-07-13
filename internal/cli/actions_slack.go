@@ -44,6 +44,10 @@ func runInitSlack(streams Streams, prompter Prompter) error {
 	cfg.Notify.ClaudeCode.Channels.Slack.WebhookURL = webhookURL
 	cfg.Notify.Codex.Channels.Slack.Enabled = true
 	cfg.Notify.Codex.Channels.Slack.WebhookURL = webhookURL
+	cfg.Notify.ZCode.Channels.Slack.Enabled = true
+	cfg.Notify.ZCode.Channels.Slack.WebhookURL = webhookURL
+	cfg.Notify.Grok.Channels.Slack.Enabled = true
+	cfg.Notify.Grok.Channels.Slack.WebhookURL = webhookURL
 
 	if err := config.Save(path, cfg); err != nil {
 		return fmt.Errorf("%s: %w", i18n.T("err.save_failed"), err)
@@ -58,5 +62,11 @@ func slackURLFromConfig(cfg config.Config) string {
 	if cfg.Notify.ClaudeCode.Channels.Slack.WebhookURL != "" {
 		return cfg.Notify.ClaudeCode.Channels.Slack.WebhookURL
 	}
-	return cfg.Notify.Codex.Channels.Slack.WebhookURL
+	if cfg.Notify.Codex.Channels.Slack.WebhookURL != "" {
+		return cfg.Notify.Codex.Channels.Slack.WebhookURL
+	}
+	if cfg.Notify.ZCode.Channels.Slack.WebhookURL != "" {
+		return cfg.Notify.ZCode.Channels.Slack.WebhookURL
+	}
+	return cfg.Notify.Grok.Channels.Slack.WebhookURL
 }

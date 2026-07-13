@@ -78,6 +78,8 @@ func TestService_Run(t *testing.T) {
 			settingsPath:    "/tmp/.codex/hooks.json",
 			isHookInstalled: false,
 		}),
+		WithZcodeIntegration(&mockIntegration{name: "ZCode", detectInstalled: false}),
+		WithGrokIntegration(&mockIntegration{name: "Grok", detectInstalled: false}),
 	)
 
 	result, err := svc.Run()
@@ -121,14 +123,24 @@ func TestService_Run_ConfigPresenceAffectsIntegrationStatus(t *testing.T) {
 			settingsPath:    "/tmp/.codex/hooks.json",
 			isHookInstalled: false,
 		}),
+		WithZcodeIntegration(&mockIntegration{name: "ZCode", detectInstalled: false}),
+		WithGrokIntegration(&mockIntegration{name: "Grok", detectInstalled: false}),
 	)
 
 	result, err := svc.Run()
 	if err != nil {
 		t.Fatalf("Run() error = %v", err)
 	}
+	// ConfigExists depends on the real ~/.agent-notify/config.yaml; only assert
+	// the integration status that follows from ConfigExists.
 	if result.ConfigExists {
-		t.Fatal("expected config to be absent")
+		if result.ClaudeIntegrationStatus != StatusInstalled {
+			t.Fatalf("ClaudeIntegrationStatus = %q, want %q when config exists", result.ClaudeIntegrationStatus, StatusInstalled)
+		}
+		if result.CodexIntegrationStatus != StatusIntegrationMissing {
+			t.Fatalf("CodexIntegrationStatus = %q, want %q when config exists", result.CodexIntegrationStatus, StatusIntegrationMissing)
+		}
+		return
 	}
 	if result.ClaudeIntegrationStatus != StatusConfigMissing {
 		t.Fatalf("ClaudeIntegrationStatus = %q, want %q", result.ClaudeIntegrationStatus, StatusConfigMissing)

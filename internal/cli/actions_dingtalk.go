@@ -44,6 +44,10 @@ func runInitDingTalk(streams Streams, prompter Prompter) error {
 	cfg.Notify.ClaudeCode.Channels.DingTalk.WebhookURL = webhookURL
 	cfg.Notify.Codex.Channels.DingTalk.Enabled = true
 	cfg.Notify.Codex.Channels.DingTalk.WebhookURL = webhookURL
+	cfg.Notify.ZCode.Channels.DingTalk.Enabled = true
+	cfg.Notify.ZCode.Channels.DingTalk.WebhookURL = webhookURL
+	cfg.Notify.Grok.Channels.DingTalk.Enabled = true
+	cfg.Notify.Grok.Channels.DingTalk.WebhookURL = webhookURL
 
 	if err := config.Save(path, cfg); err != nil {
 		return fmt.Errorf("%s: %w", i18n.T("err.save_failed"), err)
@@ -58,5 +62,11 @@ func dingTalkURLFromConfig(cfg config.Config) string {
 	if cfg.Notify.ClaudeCode.Channels.DingTalk.WebhookURL != "" {
 		return cfg.Notify.ClaudeCode.Channels.DingTalk.WebhookURL
 	}
-	return cfg.Notify.Codex.Channels.DingTalk.WebhookURL
+	if cfg.Notify.Codex.Channels.DingTalk.WebhookURL != "" {
+		return cfg.Notify.Codex.Channels.DingTalk.WebhookURL
+	}
+	if cfg.Notify.ZCode.Channels.DingTalk.WebhookURL != "" {
+		return cfg.Notify.ZCode.Channels.DingTalk.WebhookURL
+	}
+	return cfg.Notify.Grok.Channels.DingTalk.WebhookURL
 }

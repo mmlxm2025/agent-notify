@@ -44,6 +44,10 @@ func runInitBark(streams Streams, prompter Prompter) error {
 	cfg.Notify.ClaudeCode.Channels.Bark.WebhookURL = webhookURL
 	cfg.Notify.Codex.Channels.Bark.Enabled = true
 	cfg.Notify.Codex.Channels.Bark.WebhookURL = webhookURL
+	cfg.Notify.ZCode.Channels.Bark.Enabled = true
+	cfg.Notify.ZCode.Channels.Bark.WebhookURL = webhookURL
+	cfg.Notify.Grok.Channels.Bark.Enabled = true
+	cfg.Notify.Grok.Channels.Bark.WebhookURL = webhookURL
 
 	if err := config.Save(path, cfg); err != nil {
 		return fmt.Errorf("%s: %w", i18n.T("err.save_failed"), err)
@@ -58,5 +62,11 @@ func barkURLFromConfig(cfg config.Config) string {
 	if cfg.Notify.ClaudeCode.Channels.Bark.WebhookURL != "" {
 		return cfg.Notify.ClaudeCode.Channels.Bark.WebhookURL
 	}
-	return cfg.Notify.Codex.Channels.Bark.WebhookURL
+	if cfg.Notify.Codex.Channels.Bark.WebhookURL != "" {
+		return cfg.Notify.Codex.Channels.Bark.WebhookURL
+	}
+	if cfg.Notify.ZCode.Channels.Bark.WebhookURL != "" {
+		return cfg.Notify.ZCode.Channels.Bark.WebhookURL
+	}
+	return cfg.Notify.Grok.Channels.Bark.WebhookURL
 }

@@ -44,6 +44,10 @@ func runInitNtfy(streams Streams, prompter Prompter) error {
 	cfg.Notify.ClaudeCode.Channels.Ntfy.TopicURL = topicURL
 	cfg.Notify.Codex.Channels.Ntfy.Enabled = true
 	cfg.Notify.Codex.Channels.Ntfy.TopicURL = topicURL
+	cfg.Notify.ZCode.Channels.Ntfy.Enabled = true
+	cfg.Notify.ZCode.Channels.Ntfy.TopicURL = topicURL
+	cfg.Notify.Grok.Channels.Ntfy.Enabled = true
+	cfg.Notify.Grok.Channels.Ntfy.TopicURL = topicURL
 
 	if err := config.Save(path, cfg); err != nil {
 		return fmt.Errorf("%s: %w", i18n.T("err.save_failed"), err)
@@ -58,5 +62,11 @@ func ntfyURLFromConfig(cfg config.Config) string {
 	if cfg.Notify.ClaudeCode.Channels.Ntfy.TopicURL != "" {
 		return cfg.Notify.ClaudeCode.Channels.Ntfy.TopicURL
 	}
-	return cfg.Notify.Codex.Channels.Ntfy.TopicURL
+	if cfg.Notify.Codex.Channels.Ntfy.TopicURL != "" {
+		return cfg.Notify.Codex.Channels.Ntfy.TopicURL
+	}
+	if cfg.Notify.ZCode.Channels.Ntfy.TopicURL != "" {
+		return cfg.Notify.ZCode.Channels.Ntfy.TopicURL
+	}
+	return cfg.Notify.Grok.Channels.Ntfy.TopicURL
 }
