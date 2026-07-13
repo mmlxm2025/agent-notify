@@ -40,14 +40,11 @@ func runInitWechat(streams Streams, prompter Prompter) error {
 		return err
 	}
 
-	cfg.Notify.ClaudeCode.Channels.Wechat.Enabled = true
-	cfg.Notify.ClaudeCode.Channels.Wechat.WebhookURL = webhookURL
-	cfg.Notify.Codex.Channels.Wechat.Enabled = true
-	cfg.Notify.Codex.Channels.Wechat.WebhookURL = webhookURL
-	cfg.Notify.ZCode.Channels.Wechat.Enabled = true
-	cfg.Notify.ZCode.Channels.Wechat.WebhookURL = webhookURL
-	cfg.Notify.Grok.Channels.Wechat.Enabled = true
-	cfg.Notify.Grok.Channels.Wechat.WebhookURL = webhookURL
+	// Store URL on all agents; enable only for agents already configured.
+	applyChannelToAgents(&cfg, func(agentEnabled bool, notify *config.AgentNotifyConfig) {
+		notify.Channels.Wechat.WebhookURL = webhookURL
+		notify.Channels.Wechat.Enabled = agentEnabled
+	})
 
 	if err := config.Save(path, cfg); err != nil {
 		return fmt.Errorf("%s: %w", i18n.T("err.save_failed"), err)

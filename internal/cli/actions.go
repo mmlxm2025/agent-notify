@@ -211,15 +211,11 @@ func runInitWechatWork(streams Streams, prompter Prompter) error {
 		return err
 	}
 
-	// Update all agents with the same webhook URL
-	cfg.Notify.ClaudeCode.Channels.WechatWork.Enabled = true
-	cfg.Notify.ClaudeCode.Channels.WechatWork.WebhookURL = webhookURL
-	cfg.Notify.Codex.Channels.WechatWork.Enabled = true
-	cfg.Notify.Codex.Channels.WechatWork.WebhookURL = webhookURL
-	cfg.Notify.ZCode.Channels.WechatWork.Enabled = true
-	cfg.Notify.ZCode.Channels.WechatWork.WebhookURL = webhookURL
-	cfg.Notify.Grok.Channels.WechatWork.Enabled = true
-	cfg.Notify.Grok.Channels.WechatWork.WebhookURL = webhookURL
+	// Store URL on all agents; enable only for agents already configured.
+	applyChannelToAgents(&cfg, func(agentEnabled bool, notify *config.AgentNotifyConfig) {
+		notify.Channels.WechatWork.WebhookURL = webhookURL
+		notify.Channels.WechatWork.Enabled = agentEnabled
+	})
 
 	if err := config.Save(path, cfg); err != nil {
 		return fmt.Errorf("%s: %w", i18n.T("err.save_failed"), err)

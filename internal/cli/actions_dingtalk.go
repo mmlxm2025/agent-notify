@@ -40,14 +40,11 @@ func runInitDingTalk(streams Streams, prompter Prompter) error {
 		return err
 	}
 
-	cfg.Notify.ClaudeCode.Channels.DingTalk.Enabled = true
-	cfg.Notify.ClaudeCode.Channels.DingTalk.WebhookURL = webhookURL
-	cfg.Notify.Codex.Channels.DingTalk.Enabled = true
-	cfg.Notify.Codex.Channels.DingTalk.WebhookURL = webhookURL
-	cfg.Notify.ZCode.Channels.DingTalk.Enabled = true
-	cfg.Notify.ZCode.Channels.DingTalk.WebhookURL = webhookURL
-	cfg.Notify.Grok.Channels.DingTalk.Enabled = true
-	cfg.Notify.Grok.Channels.DingTalk.WebhookURL = webhookURL
+	// Store URL on all agents; enable only for agents already configured.
+	applyChannelToAgents(&cfg, func(agentEnabled bool, notify *config.AgentNotifyConfig) {
+		notify.Channels.DingTalk.WebhookURL = webhookURL
+		notify.Channels.DingTalk.Enabled = agentEnabled
+	})
 
 	if err := config.Save(path, cfg); err != nil {
 		return fmt.Errorf("%s: %w", i18n.T("err.save_failed"), err)

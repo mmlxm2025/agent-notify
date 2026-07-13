@@ -16,14 +16,25 @@ func TestDefaultConfigUsesAgentScopedNotifyConfig(t *testing.T) {
 	if cfg.Version != 1 {
 		t.Fatalf("Version = %d, want 1", cfg.Version)
 	}
-	if !cfg.Agent.ClaudeCode.Enabled {
-		t.Fatal("Claude Code should be enabled by default")
+	// No agent or channel is pre-enabled: first-time view config stays clean
+	// until the user explicitly configures an agent / channel.
+	if cfg.Agent.ClaudeCode.Enabled {
+		t.Fatal("Claude Code should be disabled by default until setup")
 	}
 	if cfg.Agent.Codex.Enabled {
 		t.Fatal("Codex should be disabled by default")
 	}
-	if !cfg.Notify.ClaudeCode.Channels.System.Enabled {
-		t.Fatal("Claude Code system notification should be enabled by default")
+	if cfg.Agent.Grok.Enabled {
+		t.Fatal("Grok should be disabled by default")
+	}
+	if cfg.Notify.ClaudeCode.Channels.System.Enabled {
+		t.Fatal("Claude Code system notification should be disabled by default")
+	}
+	if cfg.Notify.ZCode.Channels.System.Enabled {
+		t.Fatal("ZCode system notification should be disabled by default")
+	}
+	if cfg.Notify.Grok.Channels.System.Enabled {
+		t.Fatal("Grok system notification should be disabled by default")
 	}
 	if !reflect.DeepEqual(cfg.Notify.ClaudeCode.Events, allEvents) {
 		t.Fatalf("Claude Code events = %#v, want %#v", cfg.Notify.ClaudeCode.Events, allEvents)

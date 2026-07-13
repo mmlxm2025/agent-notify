@@ -40,14 +40,11 @@ func runInitSlack(streams Streams, prompter Prompter) error {
 		return err
 	}
 
-	cfg.Notify.ClaudeCode.Channels.Slack.Enabled = true
-	cfg.Notify.ClaudeCode.Channels.Slack.WebhookURL = webhookURL
-	cfg.Notify.Codex.Channels.Slack.Enabled = true
-	cfg.Notify.Codex.Channels.Slack.WebhookURL = webhookURL
-	cfg.Notify.ZCode.Channels.Slack.Enabled = true
-	cfg.Notify.ZCode.Channels.Slack.WebhookURL = webhookURL
-	cfg.Notify.Grok.Channels.Slack.Enabled = true
-	cfg.Notify.Grok.Channels.Slack.WebhookURL = webhookURL
+	// Store URL on all agents; enable only for agents already configured.
+	applyChannelToAgents(&cfg, func(agentEnabled bool, notify *config.AgentNotifyConfig) {
+		notify.Channels.Slack.WebhookURL = webhookURL
+		notify.Channels.Slack.Enabled = agentEnabled
+	})
 
 	if err := config.Save(path, cfg); err != nil {
 		return fmt.Errorf("%s: %w", i18n.T("err.save_failed"), err)

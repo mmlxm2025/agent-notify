@@ -122,11 +122,28 @@ func Default() Config {
 	// 无 PermissionRequest；授权等待通过 Notification 映射为 permission_required。
 	grokEvents := []string{"session_start", "permission_required", "input_required", "run_completed", "run_failed"}
 
+	// Channels start disabled for every agent. Enabling happens only when the user
+	// configures an agent (setup wizard) or when channel-menu init targets agents
+	// that are already enabled. Pre-enabling System (or Agent.Enabled) caused
+	// "view config" to show unconfigured agents as ready after a single-agent setup.
+	disabledChannels := func() ChannelsConfig {
+		return ChannelsConfig{
+			System:     SystemChannelConfig{Enabled: false, ClickToFocus: true},
+			Feishu:     ChannelConfig{Enabled: false},
+			Wechat:     WechatChannelConfig{Enabled: false, WebhookURL: ""},
+			WechatWork: WechatWorkChannelConfig{Enabled: false, WebhookURL: ""},
+			DingTalk:   DingTalkChannelConfig{Enabled: false, WebhookURL: ""},
+			Bark:       BarkChannelConfig{Enabled: false, WebhookURL: ""},
+			Ntfy:       NtfyChannelConfig{Enabled: false, TopicURL: ""},
+			Slack:      SlackChannelConfig{Enabled: false, WebhookURL: ""},
+		}
+	}
+
 	return Config{
 		Version: 1,
 		Agent: AgentConfig{
 			ClaudeCode: AgentTargetConfig{
-				Enabled:      true,
+				Enabled:      false,
 				InstallScope: "user",
 			},
 			Codex: AgentTargetConfig{
@@ -144,56 +161,20 @@ func Default() Config {
 		},
 		Notify: NotifyConfig{
 			ClaudeCode: AgentNotifyConfig{
-				Events: append([]string(nil), allEvents...),
-				Channels: ChannelsConfig{
-					System:     SystemChannelConfig{Enabled: true, ClickToFocus: true},
-					Feishu:     ChannelConfig{Enabled: false},
-					Wechat:     WechatChannelConfig{Enabled: false, WebhookURL: ""},
-					WechatWork: WechatWorkChannelConfig{Enabled: false, WebhookURL: ""},
-					DingTalk:   DingTalkChannelConfig{Enabled: false, WebhookURL: ""},
-					Bark:       BarkChannelConfig{Enabled: false, WebhookURL: ""},
-					Ntfy:       NtfyChannelConfig{Enabled: false, TopicURL: ""},
-					Slack:      SlackChannelConfig{Enabled: false, WebhookURL: ""},
-				},
+				Events:   append([]string(nil), allEvents...),
+				Channels: disabledChannels(),
 			},
 			Codex: AgentNotifyConfig{
-				Events: append([]string(nil), codexEvents...),
-				Channels: ChannelsConfig{
-					System:     SystemChannelConfig{Enabled: false, ClickToFocus: true},
-					Feishu:     ChannelConfig{Enabled: false},
-					Wechat:     WechatChannelConfig{Enabled: false, WebhookURL: ""},
-					WechatWork: WechatWorkChannelConfig{Enabled: false, WebhookURL: ""},
-					DingTalk:   DingTalkChannelConfig{Enabled: false, WebhookURL: ""},
-					Bark:       BarkChannelConfig{Enabled: false, WebhookURL: ""},
-					Ntfy:       NtfyChannelConfig{Enabled: false, TopicURL: ""},
-					Slack:      SlackChannelConfig{Enabled: false, WebhookURL: ""},
-				},
+				Events:   append([]string(nil), codexEvents...),
+				Channels: disabledChannels(),
 			},
 			ZCode: AgentNotifyConfig{
-				Events: append([]string(nil), zcodeEvents...),
-				Channels: ChannelsConfig{
-					System:     SystemChannelConfig{Enabled: true, ClickToFocus: true},
-					Feishu:     ChannelConfig{Enabled: false},
-					Wechat:     WechatChannelConfig{Enabled: false, WebhookURL: ""},
-					WechatWork: WechatWorkChannelConfig{Enabled: false, WebhookURL: ""},
-					DingTalk:   DingTalkChannelConfig{Enabled: false, WebhookURL: ""},
-					Bark:       BarkChannelConfig{Enabled: false, WebhookURL: ""},
-					Ntfy:       NtfyChannelConfig{Enabled: false, TopicURL: ""},
-					Slack:      SlackChannelConfig{Enabled: false, WebhookURL: ""},
-				},
+				Events:   append([]string(nil), zcodeEvents...),
+				Channels: disabledChannels(),
 			},
 			Grok: AgentNotifyConfig{
-				Events: append([]string(nil), grokEvents...),
-				Channels: ChannelsConfig{
-					System:     SystemChannelConfig{Enabled: true, ClickToFocus: true},
-					Feishu:     ChannelConfig{Enabled: false},
-					Wechat:     WechatChannelConfig{Enabled: false, WebhookURL: ""},
-					WechatWork: WechatWorkChannelConfig{Enabled: false, WebhookURL: ""},
-					DingTalk:   DingTalkChannelConfig{Enabled: false, WebhookURL: ""},
-					Bark:       BarkChannelConfig{Enabled: false, WebhookURL: ""},
-					Ntfy:       NtfyChannelConfig{Enabled: false, TopicURL: ""},
-					Slack:      SlackChannelConfig{Enabled: false, WebhookURL: ""},
-				},
+				Events:   append([]string(nil), grokEvents...),
+				Channels: disabledChannels(),
 			},
 		},
 		Behavior: BehaviorConfig{

@@ -8,30 +8,32 @@ import (
 	"github.com/hellolib/agent-notify/internal/testutil"
 )
 
-func TestRunInitBarkWritesBothAgentConfigs(t *testing.T) {
+func TestRunInitBarkEnablesOnlyConfiguredAgents(t *testing.T) {
 	testutil.IsolateHome(t)
-
-	wantURL := "https://api.day.app/testkey/replace-me"
-	streams := Streams{Stdout: &bytes.Buffer{}}
-	prompter := &fakePrompter{
-		inputs: []string{wantURL},
-	}
-
-	if err := runInitBark(streams, prompter); err != nil {
-		t.Fatalf("runInitBark() error = %v", err)
-	}
 
 	path, err := config.DefaultPath()
 	if err != nil {
 		t.Fatalf("DefaultPath() error = %v", err)
 	}
+	seed := config.Default()
+	seed.Agent.Codex.Enabled = true
+	seed.Agent.Grok.Enabled = true
+	if err := config.Save(path, seed); err != nil {
+		t.Fatalf("Save() seed error = %v", err)
+	}
+
+	wantURL := "https://api.day.app/testkey/replace-me"
+	if err := runInitBark(Streams{Stdout: &bytes.Buffer{}}, &fakePrompter{inputs: []string{wantURL}}); err != nil {
+		t.Fatalf("runInitBark() error = %v", err)
+	}
+
 	cfg, err := config.Load(path)
 	if err != nil {
 		t.Fatalf("Load() error = %v", err)
 	}
 
-	if !cfg.Notify.ClaudeCode.Channels.Bark.Enabled {
-		t.Fatal("ClaudeCode bark should be enabled")
+	if cfg.Notify.ClaudeCode.Channels.Bark.Enabled {
+		t.Fatal("ClaudeCode bark should stay disabled when Claude is not enabled")
 	}
 	if !cfg.Notify.Codex.Channels.Bark.Enabled {
 		t.Fatal("Codex bark should be enabled")
@@ -55,6 +57,8 @@ func TestRunInitBarkPreservesExistingWechat(t *testing.T) {
 		t.Fatalf("DefaultPath() error = %v", err)
 	}
 	seed := config.Default()
+	seed.Agent.ClaudeCode.Enabled = true
+	seed.Agent.Grok.Enabled = true
 	wechatURL := "https://push.example.com/api/notify/wechat-token"
 	seed.Notify.ClaudeCode.Channels.Wechat.Enabled = true
 	seed.Notify.ClaudeCode.Channels.Wechat.WebhookURL = wechatURL
