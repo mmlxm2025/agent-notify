@@ -122,10 +122,18 @@ func Default() Config {
 	// 无 PermissionRequest；授权等待通过 Notification 映射为 permission_required。
 	grokEvents := []string{"session_start", "permission_required", "input_required", "run_completed", "run_failed"}
 
-	// Channels start disabled for every agent. Enabling happens only when the user
-	// configures an agent (setup wizard) or when channel-menu init targets agents
-	// that are already enabled. Pre-enabling System (or Agent.Enabled) caused
-	// "view config" to show unconfigured agents as ready after a single-agent setup.
+	// BREAKING (vs pre-Grok defaults): Claude Code is no longer enabled by default,
+	// and System notification is no longer pre-enabled for any agent.
+	//
+	// Previously Default() set Agent.ClaudeCode.Enabled=true and
+	// Notify.ClaudeCode/ZCode/Grok Channels.System.Enabled=true. That made
+	// "view config" show unconfigured agents as ready after a single-agent setup,
+	// and channel-menu init could enable webhooks on agents the user never chose.
+	//
+	// Channels and agents now start disabled. Enabling happens only when the user
+	// runs the setup wizard or channel-menu init for agents that are already enabled.
+	// Existing ~/.agent-notify/config.yaml files are unaffected (Load preserves values).
+	// New installs must run `agent-notify` / the setup wizard once.
 	disabledChannels := func() ChannelsConfig {
 		return ChannelsConfig{
 			System:     SystemChannelConfig{Enabled: false, ClickToFocus: true},

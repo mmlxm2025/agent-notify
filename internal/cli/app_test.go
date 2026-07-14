@@ -3,6 +3,7 @@ package cli
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -230,13 +231,23 @@ func TestRunInitWritesConfig(t *testing.T) {
 func TestRunTestFeishuWithoutConfig(t *testing.T) {
 	testutil.IsolateHome(t)
 
+	// Test Feishu intentionally ignores channel enabled flags and always tries to send.
+	// Mock the preparer so tests never launch interactive Feishu CLI login.
+	oldPrepare := prepareFeishuCLI
+	prepareFeishuCLI = func(ctx context.Context) error {
+		return fmt.Errorf("feishu CLI not ready")
+	}
+	defer func() {
+		prepareFeishuCLI = oldPrepare
+	}()
+
 	var stdout bytes.Buffer
 	err := Run(context.Background(), []string{"test", "feishu"}, strings.NewReader(""), &stdout, &bytes.Buffer{})
 	if err == nil {
-		t.Fatal("Run() error = nil, want disabled feishu error")
+		t.Fatal("Run() error = nil, want preparer error")
 	}
-	if !strings.Contains(err.Error(), "feishu is disabled") {
-		t.Fatalf("err = %v, want feishu disabled error", err)
+	if !strings.Contains(err.Error(), "feishu CLI not ready") {
+		t.Fatalf("err = %v, want preparer error", err)
 	}
 }
 

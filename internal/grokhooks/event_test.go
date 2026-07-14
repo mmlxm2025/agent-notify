@@ -159,3 +159,88 @@ func TestParseUnsupportedEvent(t *testing.T) {
 		t.Fatal("ParseMessage() expected error for unsupported event PreToolUse")
 	}
 }
+
+func TestParseNotificationPrefersTypeOverBroadMessageKeywords(t *testing.T) {
+	// Message casually mentions "permission" but type is idle — must stay input_required.
+	raw := []byte(`{
+		"hookEventName":"notification",
+		"sessionId":"s",
+		"cwd":"/tmp",
+		"message":"Discussed file permission settings earlier",
+		"notificationType":"idle_prompt"
+	}`)
+	msg, err := ParseMessage(raw)
+	if err != nil {
+		t.Fatalf("ParseMessage() error = %v", err)
+	}
+	if msg.Event != "input_required" {
+		t.Fatalf("Event = %q, want input_required (type should win over bare word 'permission')", msg.Event)
+	}
+}
+
+func TestParseNotificationTypePermissionPrompt(t *testing.T) {
+	raw := []byte(`{
+		"hookEventName":"notification",
+		"sessionId":"s",
+		"cwd":"/tmp",
+		"toolName":"bash",
+		"message":"Allow shell?",
+		"notificationType":"permission_prompt"
+	}`)
+	msg, err := ParseMessage(raw)
+	if err != nil {
+		t.Fatalf("ParseMessage() error = %v", err)
+	}
+	if msg.Event != "permission_required" {
+		t.Fatalf("Event = %q, want permission_required", msg.Event)
+	}
+	if !strings.Contains(msg.Body, "bash") {
+		t.Fatalf("Body = %q, want tool name", msg.Body)
+	}
+}
+
+func TestParseNotificationBarePermissionWordIsNotPermissionRequired(t *testing.T) {
+	// Without notificationType, a bare "permission" word must not force permission_required.
+	raw := []byte(`{
+		"hookEventName":"notification",
+		"sessionId":"s",
+		"cwd":"/tmp",
+		"message":"Check the permission model docs"
+	}`)
+	msg, err := ParseMessage(raw)
+	if err != nil {
+		t.Fatalf("ParseMessage() error = %v", err)
+	}
+	if msg.Event != "input_required" {
+		t.Fatalf("Event = %q, want input_required for non-phrase permission mention", msg.Event)
+	}
+}
+
+func TestParseNotificationMessagePhrasePermissionRequired(t *testing.T) {
+	raw := []byte(`{
+		"hookEventName":"notification",
+		"sessionId":"s",
+		"cwd":"/tmp",
+		"toolName":"run_terminal_command",
+		"message":"Permission required to run shell command"
+	}`)
+	msg, err := ParseMessage(raw)
+	if err != nil {
+		t.Fatalf("ParseMessage() error = %v", err)
+	}
+	if msg.Event != "permission_required" {
+		t.Fatalf("Event = %q, want permission_required", msg.Event)
+	}
+}
+
+func TestExtractInputHintStripsGrokPrefix(t *testing.T) {
+	got := extractInputHint("Grok is waiting for your input: continue?")
+	if got != "continue?" {
+		t.Fatalf("extractInputHint() = %q, want continue?", got)
+	}
+	// Claude-specific prefix must not be special-cased for Grok payloads.
+	got = extractInputHint("claude is waiting for your input: x")
+	if got != "claude is waiting for your input: x" {
+		t.Fatalf("unexpected strip of claude prefix: %q", got)
+	}
+}

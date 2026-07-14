@@ -77,7 +77,9 @@ npx agent-notify
 
 > agent-notify 不需要手动处理配置文件，该章节仅是为了说明配置相关信息。
 
-agent-notify 自身配置位于 `~/.agent-notify/config.yaml`。Agent 集成配置位置：
+agent-notify 自身配置位于 `~/.agent-notify/config.yaml`。**新安装默认关闭所有 Agent 与通知渠道**——需运行一次 `npx agent-notify`（配置向导）启用你需要的 Agent 与渠道。这样可避免只配置了一个 Agent 后，在「查看配置 / 诊断」里把未配置的 Agent 显示为已就绪。已有配置文件不受影响。
+
+Agent 集成配置位置：
 
 - Claude Code: `~/.claude/settings.json`（写入 hooks → 命令 `agent-notify handle-claude-hook`）
 - Codex: `~/.codex/hooks.json`（写入 hooks → 命令 `agent-notify handle-codex-hook`，需在 codex 内运行 `/hooks` 完成 trust）
