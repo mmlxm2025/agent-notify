@@ -1,3 +1,8 @@
+// Package grokhooks parses Grok Build hook stdin payloads into notify.Message values.
+//
+// Notification body strings (e.g. "未知错误", "等待您的操作") are hardcoded Chinese to
+// match claudehooks, codexhooks, zcodehooks, and notify.DefaultBody / FormatTitle.
+// Interactive CLI/setup UI uses internal/i18n; hook→notify message bodies intentionally do not.
 package grokhooks
 
 import (
@@ -12,23 +17,23 @@ import (
 // Grok 文档示例使用 camelCase 字段名，hookEventName 的值为 snake_case
 //（如 pre_tool_use / session_start）。同时兼容 PascalCase 与下划线字段名。
 type payload struct {
-	HookEventName      string         `json:"hook_event_name"`
-	HookEventNameCamel string         `json:"hookEventName"`
-	SessionID          string         `json:"session_id"`
-	SessionIDCamel     string         `json:"sessionId"`
-	CWD                string         `json:"cwd"`
-	WorkspaceRoot      string         `json:"workspaceRoot"`
-	Message            string         `json:"message"`
-	NotificationType   string         `json:"notification_type"`
-	NotificationTypeCamel string      `json:"notificationType"`
-	ToolName           string         `json:"tool_name"`
-	ToolNameCamel      string         `json:"toolName"`
-	ToolResponse       map[string]any `json:"tool_response"`
-	ToolResponseCamel  map[string]any `json:"toolResponse"`
-	ToolInput          map[string]any `json:"tool_input"`
-	ToolInputCamel     map[string]any `json:"toolInput"`
-	Error              string         `json:"error"`
-	ErrorMessage       string         `json:"errorMessage"`
+	HookEventName         string         `json:"hook_event_name"`
+	HookEventNameCamel    string         `json:"hookEventName"`
+	SessionID             string         `json:"session_id"`
+	SessionIDCamel        string         `json:"sessionId"`
+	CWD                   string         `json:"cwd"`
+	WorkspaceRoot         string         `json:"workspaceRoot"`
+	Message               string         `json:"message"`
+	NotificationType      string         `json:"notification_type"`
+	NotificationTypeCamel string         `json:"notificationType"`
+	ToolName              string         `json:"tool_name"`
+	ToolNameCamel         string         `json:"toolName"`
+	ToolResponse          map[string]any `json:"tool_response"`
+	ToolResponseCamel     map[string]any `json:"toolResponse"`
+	ToolInput             map[string]any `json:"tool_input"`
+	ToolInputCamel        map[string]any `json:"toolInput"`
+	Error                 string         `json:"error"`
+	ErrorMessage          string         `json:"errorMessage"`
 }
 
 func (p payload) eventOf() string {
@@ -66,6 +71,13 @@ func (p payload) toolResponseOf() map[string]any {
 	return p.ToolResponseCamel
 }
 
+func (p payload) notificationTypeOf() string {
+	if p.NotificationType != "" {
+		return p.NotificationType
+	}
+	return p.NotificationTypeCamel
+}
+
 func ParseMessage(data []byte) (notify.Message, error) {
 	var p payload
 	if err := json.Unmarshal(data, &p); err != nil {
@@ -96,9 +108,9 @@ func ParseMessage(data []byte) (notify.Message, error) {
 		}, nil
 	case "stop_failure", "post_tool_use_failure":
 		errMsg := extractErrorMessage(p)
-		tool := fallbackToolName(p.toolNameOf())
+		tool := strings.TrimSpace(p.toolNameOf())
 		body := fmt.Sprintf("错误: %s", errMsg)
-		if tool != "" && tool != "未知工具" {
+		if tool != "" {
 			body = fmt.Sprintf("工具: %s\n错误: %s", tool, errMsg)
 		}
 		return notify.Message{
@@ -116,13 +128,14 @@ func ParseMessage(data []byte) (notify.Message, error) {
 
 func parseNotification(p payload) (notify.Message, error) {
 	msg := p.Message
-	notifType := p.NotificationType
-	if notifType == "" {
-		notifType = p.NotificationTypeCamel
-	}
-	combined := strings.ToLower(strings.TrimSpace(msg + " " + notifType))
+	notifType := p.notificationTypeOf()
+	typeLower := strings.ToLower(strings.TrimSpace(notifType))
+	msgLower := strings.ToLower(strings.TrimSpace(msg))
 
-	if isPermissionNotification(combined) {
+	// Prefer structured notificationType over free-text keyword matching so
+	// ordinary words like "permission" / "approval" in message bodies do not
+	// misclassify non-permission notifications.
+	if isPermissionNotificationType(typeLower) {
 		return notify.Message{
 			Agent:     "grok",
 			Event:     "permission_required",
@@ -132,37 +145,61 @@ func parseNotification(p payload) (notify.Message, error) {
 			Body:      permissionBody(msg, p.toolNameOf()),
 		}, nil
 	}
+	if isInputRequiredNotificationType(typeLower) {
+		return inputRequiredMessage(p, msg, notifType), nil
+	}
 
-	if isInputRequiredNotification(combined) || msg != "" || notifType != "" {
-		hint := extractInputHint(msg)
-		if hint == "" {
-			hint = notifType
-		}
-		if hint == "" {
-			hint = "等待您的操作"
-		}
+	// Message-body fallback uses specific phrases only (not bare common words).
+	if isPermissionNotificationMessage(msgLower) {
 		return notify.Message{
 			Agent:     "grok",
-			Event:     "input_required",
+			Event:     "permission_required",
 			SessionID: p.sessionOf(),
 			Workspace: p.workspaceOf(),
-			Title:     notify.FormatTitle("grok", "input_required"),
-			Body:      fmt.Sprintf("提示: %s", hint),
+			Title:     notify.FormatTitle("grok", "permission_required"),
+			Body:      permissionBody(msg, p.toolNameOf()),
 		}, nil
+	}
+	if isInputRequiredNotificationMessage(msgLower) {
+		return inputRequiredMessage(p, msg, notifType), nil
+	}
+
+	// Unknown notification with any payload → input_required (Grok idle prompts
+	// often omit notificationType). Empty payloads are rejected.
+	if strings.TrimSpace(msg) != "" || strings.TrimSpace(notifType) != "" {
+		return inputRequiredMessage(p, msg, notifType), nil
 	}
 
 	return notify.Message{}, fmt.Errorf("unsupported notification: message=%q type=%q", msg, notifType)
 }
 
+func inputRequiredMessage(p payload, msg, notifType string) notify.Message {
+	hint := extractInputHint(msg)
+	if hint == "" {
+		hint = notifType
+	}
+	if hint == "" {
+		hint = "等待您的操作"
+	}
+	return notify.Message{
+		Agent:     "grok",
+		Event:     "input_required",
+		SessionID: p.sessionOf(),
+		Workspace: p.workspaceOf(),
+		Title:     notify.FormatTitle("grok", "input_required"),
+		Body:      fmt.Sprintf("提示: %s", hint),
+	}
+}
+
 func permissionBody(msg, toolName string) string {
-	tool := fallbackToolName(toolName)
+	tool := strings.TrimSpace(toolName)
 	if strings.TrimSpace(msg) != "" {
-		if tool != "" && tool != "未知工具" {
+		if tool != "" {
 			return fmt.Sprintf("工具: %s\n%s", tool, strings.TrimSpace(msg))
 		}
 		return strings.TrimSpace(msg)
 	}
-	if tool != "" && tool != "未知工具" {
+	if tool != "" {
 		return fmt.Sprintf("工具: %s\n操作需要您的授权许可", tool)
 	}
 	return "操作需要您的授权许可"
@@ -188,35 +225,85 @@ func normalizeEventName(name string) string {
 	}
 }
 
-func isPermissionNotification(msg string) bool {
-	return strings.Contains(msg, "permission") ||
-		strings.Contains(msg, "approval") ||
-		strings.Contains(msg, "authorize") ||
-		strings.Contains(msg, "授权") ||
-		strings.Contains(msg, "许可")
+// isPermissionNotificationType matches structured notificationType values from Grok.
+func isPermissionNotificationType(t string) bool {
+	if t == "" {
+		return false
+	}
+	return t == "permission_prompt" ||
+		t == "permission" ||
+		t == "permission_request" ||
+		t == "approval" ||
+		t == "approval_prompt" ||
+		t == "approval_request" ||
+		strings.HasPrefix(t, "permission_") ||
+		strings.HasPrefix(t, "approval_")
 }
 
-func isInputRequiredNotification(msg string) bool {
+// isInputRequiredNotificationType matches structured notificationType values for idle/input.
+func isInputRequiredNotificationType(t string) bool {
+	if t == "" {
+		return false
+	}
+	return t == "idle_prompt" ||
+		t == "input_required" ||
+		t == "waiting_input" ||
+		t == "needs_input" ||
+		strings.HasPrefix(t, "idle_") ||
+		strings.HasPrefix(t, "input_")
+}
+
+// isPermissionNotificationMessage matches specific permission phrases in the message body.
+// Bare words like "permission" alone are intentionally not matched (too broad).
+func isPermissionNotificationMessage(msg string) bool {
+	if msg == "" {
+		return false
+	}
+	return strings.Contains(msg, "permission required") ||
+		strings.Contains(msg, "requires permission") ||
+		strings.Contains(msg, "needs permission") ||
+		strings.Contains(msg, "needs your permission") ||
+		strings.Contains(msg, "approval required") ||
+		strings.Contains(msg, "needs approval") ||
+		strings.Contains(msg, "requires approval") ||
+		strings.Contains(msg, "awaiting approval") ||
+		strings.Contains(msg, "authorization required") ||
+		strings.Contains(msg, "requires authorization") ||
+		strings.Contains(msg, "needs authorization") ||
+		strings.Contains(msg, "需要您的授权") ||
+		strings.Contains(msg, "需要授权") ||
+		strings.Contains(msg, "授权许可") ||
+		strings.Contains(msg, "等待授权")
+}
+
+// isInputRequiredNotificationMessage matches idle/input phrases in the message body.
+func isInputRequiredNotificationMessage(msg string) bool {
+	if msg == "" {
+		return false
+	}
 	return strings.Contains(msg, "waiting for your input") ||
 		strings.Contains(msg, "waiting for input") ||
 		strings.Contains(msg, "needs input") ||
-		strings.Contains(msg, "idle_prompt") ||
 		strings.Contains(msg, "等待输入") ||
-		strings.Contains(msg, "等待您的")
+		strings.Contains(msg, "等待您的输入") ||
+		strings.Contains(msg, "等待您的操作")
 }
 
 func extractInputHint(msg string) string {
 	msg = strings.TrimSpace(msg)
 	prefixes := []string{
 		"grok is waiting for your input",
-		"claude is waiting for your input",
-		"waiting for your input: ",
-		"waiting for input: ",
-		"needs input: ",
+		"waiting for your input",
+		"waiting for input",
+		"needs input",
 	}
+	lower := strings.ToLower(msg)
 	for _, prefix := range prefixes {
-		if strings.HasPrefix(strings.ToLower(msg), prefix) {
-			return strings.TrimSpace(msg[len(prefix):])
+		if strings.HasPrefix(lower, prefix) {
+			rest := strings.TrimSpace(msg[len(prefix):])
+			rest = strings.TrimPrefix(rest, ":")
+			rest = strings.TrimSpace(rest)
+			return rest
 		}
 	}
 	if len(msg) > 100 {
@@ -247,14 +334,6 @@ func extractErrorMessage(p payload) string {
 		}
 	}
 	return "操作失败"
-}
-
-func fallbackToolName(name string) string {
-	name = strings.TrimSpace(name)
-	if name == "" {
-		return "未知工具"
-	}
-	return name
 }
 
 func truncate(s string, max int) string {

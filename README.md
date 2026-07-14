@@ -80,7 +80,9 @@ On every subsequent run it checks the local binary version: it downloads if miss
 
 > You don't need to edit config files by hand — this section is for reference only.
 
-Agent Notify's own config lives at `~/.agent-notify/config.yaml`. Agent integration config locations:
+Agent Notify's own config lives at `~/.agent-notify/config.yaml`. **New installs start with all agents and channels disabled** — run `npx agent-notify` (setup wizard) once to enable the agents and channels you want. This avoids showing unconfigured agents as ready in view/doctor after a partial setup. Existing config files are left unchanged.
+
+Agent integration config locations:
 
 - Claude Code: `~/.claude/settings.json` (writes hooks → command `agent-notify handle-claude-hook`)
 - Codex: `~/.codex/hooks.json` (writes hooks → command `agent-notify handle-codex-hook`; run `/hooks` inside Codex to complete trust)
